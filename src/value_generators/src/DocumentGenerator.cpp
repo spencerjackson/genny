@@ -57,7 +57,7 @@ private:
     // Number of distinct elements in the distribution.
     IntType _n;
 
-    // This implementation is based on https://cse.usf.edu/~kchriste/tools/genzipf.c, 
+    // This implementation is based on https://cse.usf.edu/~kchriste/tools/genzipf.c,
     // it uses the inverse transform sampling method for generating random numbers.
     // This method is not the most accurate and efficient for heavy tailed distributions,
     // but is sufficient for our current purposes as we're not doing any numerical analysis.
@@ -499,7 +499,7 @@ public:
     ZipfianInt64Generator(const Node& node, GeneratorArgs generatorArgs)
         : _rng{generatorArgs.rng},
           _id{generatorArgs.actorId},
-          _distribution{extract(node, "alpha", "zipfian").to<double>(), 
+          _distribution{extract(node, "alpha", "zipfian").to<double>(),
                         intGenerator(extract(node, "n", "zipfian"), generatorArgs)->evaluate()} {}
 
     int64_t evaluate() override {
@@ -600,6 +600,38 @@ protected:
     bool _deterministic;
 };
 
+// // This generator allows choosing any valid generator, incuding documents. As such it cannot be used
+// // by JoinGenerator today. See ChooseStringGenerator.
+// class ChooseGenerator : public Appendable {
+// public:
+//     // constructor defined at bottom of the file to use other symbol
+//     ChooseGenerator(const Node& node, GeneratorArgs generatorArgs);
+//     Appendable& choose() {
+//         if (_deterministic) {
+//             ++_elemNumber;
+//             return *_choices[_elemNumber % _choices.size()];
+//         }
+//         // Pick a random number between 0 and sum(weights)
+//         // Pick value based on that.
+//         auto distribution = boost::random::discrete_distribution(_weights);
+//         return (*_choices[distribution(_rng)]);
+//     }
+
+//     void append(const std::string& key, bsoncxx::builder::basic::document& builder) override {
+//         choose().append(key, builder);
+//     }
+//     void append(bsoncxx::builder::basic::array& builder) override {
+//         choose().append(builder);
+//     }
+
+// protected:
+//     DefaultRandom& _rng;
+//     ActorId _id;
+//     std::vector<UniqueAppendable> _choices;
+//     std::vector<int64_t> _weights;
+//     int32_t _elemNumber;
+//     bool _deterministic;
+// };
 class IPGenerator : public Generator<std::string> {
 public:
     IPGenerator(const Node& node, GeneratorArgs generatorArgs)
@@ -1689,7 +1721,7 @@ UniqueGenerator<bsoncxx::array::value> literalArrayGenerator(const Node& node,
  */
 //
 // We need this additional lookup function because we do "double-dispatch"
-// for ^RandomDouble. So doubleOperand determines if we're looking at 
+// for ^RandomDouble. So doubleOperand determines if we're looking at
 // ^RandomDouble or a constant. If we're looking at ^RandomDouble
 // it dispatches to here to determine which doubleGenerator to use.
 //

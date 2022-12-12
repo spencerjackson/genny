@@ -62,6 +62,11 @@ Actors:
   ClientName: EncryptedPool
   Phases:
   - *load_phase
-
+- Name: LoggingActor0
+  Type: LoggingActor
+  Threads: 1
+  Phases:
+  - LogEvery: 5 minutes
+    Blocking: None
 
 

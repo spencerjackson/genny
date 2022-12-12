@@ -38,6 +38,7 @@ for (name, coll) in collections.items():
             return fieldDescription
 
         def generateAutoRun():
+            # Tweak this bit to change tasks Genny will run in Evergreen
             if name is "blimit" and enc is 5 and cf is 4 and tc is 4:
               return """AutoRun:
 - When:
@@ -115,7 +116,12 @@ Actors:
   ClientName: EncryptedPool
   Phases:
   - *load_phase
-
+- Name: LoggingActor0
+  Type: LoggingActor
+  Threads: 1
+  Phases:
+  - LogEvery: 5 minutes
+    Blocking: None
 {generateAutoRun()}
 
 """)

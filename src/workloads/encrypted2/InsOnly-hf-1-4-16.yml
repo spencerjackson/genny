@@ -1,0 +1,63 @@
+SchemaVersion: 2018-07-01
+Owner: "@10gen/server-security"
+Description: |
+  Performs a series of insert operations, using the following properties:
+    - All documents have 11 fields, including 1 _id field, and 10 data fields.
+    - The first 1 data fields are encrypted.
+    - _id is always unique.
+    - Values in data fields fit a 'hf' distribution. All field/value pairs have high frequency.
+    - The insertions are performed by 16 client threads.
+  This test is uniquely identified as 'InsOnly-hf-1-4-16'.
+
+Encryption:
+  UseCryptSharedLib: true
+  CryptSharedLibPath: /data/workdir/mongocrypt/lib/mongo_crypt_v1.so
+  EncryptedCollections:
+  - Database: genny_qebench
+    Collection: testcoll
+    EncryptionType: queryable
+    QueryableEncryptedFields:
+      field0: &field_schema { type: "long", queries: [{queryType: "equality", contention: 4}] }
+
+
+Clients:
+  EncryptedPool:
+    QueryOptions:
+      maxPoolSize: 400
+    EncryptionOptions:
+      KeyVaultDatabase: "keyvault"
+      KeyVaultCollection: "datakeys"
+      EncryptedCollections:
+      - genny_qebench.testcoll
+
+LoadPhase: &load_phase
+  Repeat: 6250.0
+  Collection: &collection_param {^Parameter: {Name: "Collection", Default: "testcoll"}}
+  MetricsName: "load"
+  Operations:
+  - OperationName: insertOne
+    OperationMetricsName: inserts
+    OperationCommand:
+      Document:
+        field0: &valueFormat {^RandomInt: {min: 0, max: 100000, distribution: uniform}}
+        field1: *valueFormat
+        field2: *valueFormat
+        field3: *valueFormat
+        field4: *valueFormat
+        field5: *valueFormat
+        field6: *valueFormat
+        field7: *valueFormat
+        field8: *valueFormat
+        field9: *valueFormat
+
+Actors:
+- Name: InsertActor
+  Type: CrudActor
+  Threads: 16
+  Database: genny_qebench
+  ClientName: EncryptedPool
+  Phases:
+  - *load_phase
+
+
+

@@ -1352,3 +1352,19 @@ Tests:
         - foo : v2
         - foo : v3
         - foo : v3
+
+  - Name: TakeTest
+    GivenTemplate:
+        foo:
+          ^TakeRandomStringFromFrequencyMapSingleton:
+            id: foo1
+            from:
+              v1: 1
+              v2: 2
+              v3: 2
+    ThenReturns:
+        - foo : v1
+        - foo : v2
+        - foo : v2
+        - foo : v3
+        - foo : v3

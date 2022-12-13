@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <value_generators/DocumentGenerator.hpp>
+#include <value_generators/FrequencyMap.hpp>
 
 #include <fstream>
 #include <functional>
@@ -600,38 +601,39 @@ protected:
     bool _deterministic;
 };
 
-// // This generator allows choosing any valid generator, incuding documents. As such it cannot be used
-// // by JoinGenerator today. See ChooseStringGenerator.
-// class ChooseGenerator : public Appendable {
-// public:
-//     // constructor defined at bottom of the file to use other symbol
-//     ChooseGenerator(const Node& node, GeneratorArgs generatorArgs);
-//     Appendable& choose() {
-//         if (_deterministic) {
-//             ++_elemNumber;
-//             return *_choices[_elemNumber % _choices.size()];
-//         }
-//         // Pick a random number between 0 and sum(weights)
-//         // Pick value based on that.
-//         auto distribution = boost::random::discrete_distribution(_weights);
-//         return (*_choices[distribution(_rng)]);
-//     }
+// This is a a more specific version of ChooseGenerator that produces strings. It is only used
+// within the JoinGenerator.
+class FrequencyMapGenerator : public Generator<std::string> {
+public:
+    FrequencyMapGenerator(const Node& node, GeneratorArgs generatorArgs)
+        : _rng{generatorArgs.rng} {
+        if (!node["from"].isMap()) {
+            std::stringstream msg;
+            msg << "Malformed node for choose from a map " << node;
+            BOOST_THROW_EXCEPTION(InvalidValueGeneratorSyntax(msg.str()));
+        }
+        for (const auto&& [k, v] : node["from"]) {
+            _map.push_back(v.key(), (size_t)(v.maybe<std::int64_t>().value()));
+        }
+    }
 
-//     void append(const std::string& key, bsoncxx::builder::basic::document& builder) override {
-//         choose().append(key, builder);
-//     }
-//     void append(bsoncxx::builder::basic::array& builder) override {
-//         choose().append(builder);
-//     }
+    std::string evaluate() override {
 
-// protected:
-//     DefaultRandom& _rng;
-//     ActorId _id;
-//     std::vector<UniqueAppendable> _choices;
-//     std::vector<int64_t> _weights;
-//     int32_t _elemNumber;
-//     bool _deterministic;
-// };
+        if(_map.size() == 1) {
+            return _map.take(0);
+        }
+        
+        // Pick a random number between 0 and _map.size()
+        auto distribution = boost::random::uniform_int_distribution<size_t>(0, _map.size() - 1);
+        auto value = distribution(_rng);
+        return _map.take(value);
+    };
+
+protected:
+    DefaultRandom& _rng;
+    v1::FrequencyMap _map;
+};
+
 class IPGenerator : public Generator<std::string> {
 public:
     IPGenerator(const Node& node, GeneratorArgs generatorArgs)
@@ -1594,6 +1596,10 @@ const static std::map<std::string, Parser<UniqueAppendable>> allParsers{
      [](const Node& node, GeneratorArgs generatorArgs) {
          return std::make_unique<ChooseGenerator>(node, generatorArgs);
      }},
+    {"^TakeRandomStringFromFrequencyMap",
+     [](const Node& node, GeneratorArgs generatorArgs) {
+         return std::make_unique<FrequencyMapGenerator>(node, generatorArgs);
+     }},
     {"^IP",
      [](const Node& node, GeneratorArgs generatorArgs) {
          return std::make_unique<IPGenerator>(node, generatorArgs);
@@ -1888,6 +1894,10 @@ UniqueGenerator<std::string> stringGenerator(const Node& node, GeneratorArgs gen
         {"^Choose",
          [](const Node& node, GeneratorArgs generatorArgs) {
              return std::make_unique<ChooseStringGenerator>(node, generatorArgs);
+         }},
+        {"^TakeRandomStringFromFrequencyMap",
+         [](const Node& node, GeneratorArgs generatorArgs) {
+             return std::make_unique<FrequencyMapGenerator>(node, generatorArgs);
          }},
         {"^IP",
          [](const Node& node, GeneratorArgs generatorArgs) {

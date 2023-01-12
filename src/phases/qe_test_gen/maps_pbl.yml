@@ -2038,6 +2038,7 @@ map_pbl_f10: &map_pbl_f10
 
 
 document_insert_pbl:
+    _id:     {^Inc: {start: 0}}
     field1:  {^TakeRandomStringFromFrequencyMapSingleton: *map_pbl_f1 }
     field2:  {^TakeRandomStringFromFrequencyMapSingleton: *map_pbl_f2 }
     field3:  {^TakeRandomStringFromFrequencyMapSingleton: *map_pbl_f3 }

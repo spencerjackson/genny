@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "qe_test_gen"
+version = "0.1.0"
+description = "Generates QE Genny test descriptions"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "qe_test_gen"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyyaml = "^6.0"
+numpy = "^1.24.1"
+jinja2 = "^3.1.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

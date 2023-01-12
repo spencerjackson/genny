@@ -1,0 +1,9 @@
+- Repeat: <<iterationsPerThread>>
+  Collection: &collection_param {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
+  MetricsName: "update"
+  Operations:
+  - OperationName: updateOne
+    OperationMetricsName: updates
+    OperationCommand:
+      Filter: {_id: 49999}
+      Update: {field10: 9999}

@@ -200,7 +200,7 @@ class WorkloadWriter:
     self.isEncrypted = encryptedFields > 0
 
     # TODO - stop hard coding this
-    self.freq_map = frequency_map.load_map("src/phases/encrypted2/maps_pbl.yml")
+    self.freq_map = frequency_map.load_map("maps_pbl.yml")
 
     self.freq_buckets = {}
     for f in self.freq_map.keys():

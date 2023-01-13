@@ -129,13 +129,19 @@ class UpdatePhase:
     template = self.env.get_template("update_phase.jinja2")
     return template
 
-class ExperimentParser:
+class PhaseFactory:
   def __init__(self, ex):
     self.ex = ex
 
+    self.freq_map = frequency_map.load_map("maps_pbl.yml")
+    self.freq_buckets = {}
+    for f in self.freq_map.keys():
+      self.freq_buckets[f] = frequency_map.FrequencyBuckets(self.freq_map[f])
+
+
   def transformField(selector):
     """Convert a field selector in a query against a field or a set of fields"""
-    if selector is "_id":
+    if selector == "_id":
       return "_id"
 
     # Fixed field
@@ -160,9 +166,18 @@ class ExperimentParser:
     raise NotImplemented()
 
 
-  def transformValueSelector(fb: frequency_map.FrequencyBuckets, selector:str):
+  def transformValueSelector(self, field: str, selector:str):
     """Convert a value selector into a set of values to query"""
-    
+
+    field_num = -1
+    fb = None
+    print(field)
+    print( field.startswith("field"))
+    if field.startswith("field"):
+      print("hit")
+      field_num = int(field.replace("field", ""))
+      fb = self.freq_map[field_num]
+
     if selector == "uar":
       return fb.uar()
     elif selector == "fixed":
@@ -175,7 +190,7 @@ class ExperimentParser:
     raise NotImplemented()
 
   def parseFieldValue(self, target):
-    return (ExperimentParser.transformField(target['field']),  ExperimentParser.transformValueSelector(None, target['value']))
+    return (PhaseFactory.transformField(target['field']), self.transformValueSelector(target['field'], target['value']))
 
   def makePhases(self, env):
     query = self.parseFieldValue(self.ex['query'])
@@ -183,14 +198,14 @@ class ExperimentParser:
     return [LoadPhase(env), UpdatePhase(env, query[0], query[1], update[0], update[1])]
 
 class Workload:
-  def __init__(self, ex, cf, tc):
+  def __init__(self, ex, cf, tc, phaseDescription):
     self.name = ex['name']
     self.contentionFactor = cf
     self.encryptedFields = ex['encryptedFieldCount']
     self.threadCount = tc
     self.collectionName = ex['coll']
 
-    self.parser = ExperimentParser(ex['updates'][0])
+    self.parser = PhaseFactory(phaseDescription)
 
   def asContext(self):
     phases = self.parser.makePhases(env)
@@ -211,8 +226,10 @@ class Workload:
     
 
 template = env.get_template("update_only.jinja2")
+
 for ex in EXPERIMENTS:
     for cf in ex["contentionFactors"]:
         for tc in ex["threadCounts"]:
-            workload = Workload(ex, cf, tc)
+          for phaseDescription in ex["updates"]:
+            workload = Workload(ex, cf, tc, phaseDescription)
             print(template.render(workload.asContext()))

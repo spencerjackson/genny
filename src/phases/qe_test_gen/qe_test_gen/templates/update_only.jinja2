@@ -1,4 +1,8 @@
-{% macro ingest(x) %}{% include x %}{% endmacro %}
+{% macro ingest(phase) %}
+{% with ctx = phase.context() %}
+{% include phase.generate() %}
+{% endwith %}
+{% endmacro %}
 SchemaVersion: 2018-07-01
 Owner: "@10gen/server-security"
 Description: |

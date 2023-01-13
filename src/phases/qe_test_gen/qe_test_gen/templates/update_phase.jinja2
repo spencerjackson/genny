@@ -5,5 +5,5 @@
   - OperationName: updateOne
     OperationMetricsName: updates
     OperationCommand:
-      Filter: {_id: 49999}
-      Update: {field10: 9999}
+      Filter: { <<ctx.query_field>> : <<ctx.query_value>> }
+      Update: { <<ctx.update_field>> : <<ctx.update_value>> }

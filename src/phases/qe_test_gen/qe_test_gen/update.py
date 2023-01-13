@@ -1,6 +1,8 @@
 
 import math
 
+import frequency_map
+
 """
 Experiment Set u.1: Update unencrypted fields on unencrypted collection
 coll = pbl
@@ -97,16 +99,90 @@ EXPERIMENTS = [
 DOCUMENT_COUNT=100000
 
 class LoadPhase:
-  def generate(self, env):
-    template = env.get_template("load_phase.jinja2")
+  def __init__(self, env):
+    self.env = env
+
+  def context(self):
+    return {}
+
+  def generate(self):
+    template = self.env.get_template("load_phase.jinja2")
     return template
 
 class UpdatePhase:
-  def generate(self, env):
-    template = env.get_template("update_phase.jinja2")
+  def __init__(self, env, queryField, queryValue, updateField, updateValue):
+    self.env = env
+    self.queryField = queryField
+    self.queryValue = queryValue
+    self.updateField = updateField
+    self.updateValue = updateValue
+
+  def context(self):
+    return {
+      'query_field': self.queryField,
+      'query_value': self.queryValue,
+      'update_field': self.updateField,
+      'update_value': self.updateValue
+    }
+
+  def generate(self):
+    template = self.env.get_template("update_phase.jinja2")
     return template
 
-class WorkloadGenerator:
+class ExperimentParser:
+  def __init__(self, ex):
+    self.ex = ex
+
+  def transformField(selector):
+    """Convert a field selector in a query against a field or a set of fields"""
+    if selector is "_id":
+      return "_id"
+
+    # Fixed field
+    if selector.startswith("fixed_"):
+      return "field" + selector.replace("fixed_", "")
+  
+    if selector.startswith("uar_"):
+      # print(selector)
+      uar_re = r"uar_\[(\d),\s*(\d+)\]"
+      m = re.match(uar_re, selector)
+      # print(m)
+      assert m is not None
+      lower_bound = int(m[1])
+      upper_bound = int(m[2])
+  
+      fields = []
+      for i in range(lower_bound, upper_bound + 1):
+        fields.append("field" + str(i))
+  
+      return fields
+  
+    raise NotImplemented()
+
+
+  def transformValueSelector(fb: frequency_map.FrequencyBuckets, selector:str):
+    """Convert a value selector into a set of values to query"""
+    
+    if selector == "uar":
+      return fb.uar()
+    elif selector == "fixed":
+      return "49999"
+    elif selector.startswith("fixed_"):
+      return fb.fixed_bucket(selector.replace("fixed_", ""))
+    elif selector.startswith("uar_alllow"):
+      return fb.uar_all_low()
+    
+    raise NotImplemented()
+
+  def parseFieldValue(self, target):
+    return (ExperimentParser.transformField(target['field']),  ExperimentParser.transformValueSelector(None, target['value']))
+
+  def makePhases(self, env):
+    query = self.parseFieldValue(self.ex['query'])
+    update = self.parseFieldValue(self.ex['update'])
+    return [LoadPhase(env), UpdatePhase(env, query[0], query[1], update[0], update[1])]
+
+class Workload:
   def __init__(self, ex, cf, tc):
     self.name = ex['name']
     self.contentionFactor = cf
@@ -114,37 +190,29 @@ class WorkloadGenerator:
     self.threadCount = tc
     self.collectionName = ex['coll']
 
-    self.phases = [LoadPhase().generate(env), UpdatePhase().generate(env)]
-
+    self.parser = ExperimentParser(ex['updates'][0])
 
   def asContext(self):
-    return {
+    phases = self.parser.makePhases(env)
+
+    context =  {
       "testName": f"UpdateOnly-{self.name}-{cf}-{tc}",
       "contentionFactor": self.contentionFactor,
       "encryptedFields": self.encryptedFields,
       "threadCount": self.threadCount,
       "collectionName": self.collectionName,
       "iterationsPerThread": math.floor(DOCUMENT_COUNT / self.threadCount),
-      "maxPhase": len(self.phases),
+      "maxPhase": len(phases),
       "shouldAutoRun": True,
-      "phases": self.phases
+      "phases": phases
     }
+
+    return context
+    
 
 template = env.get_template("update_only.jinja2")
 for ex in EXPERIMENTS:
     for cf in ex["contentionFactors"]:
         for tc in ex["threadCounts"]:
-
-            #context = {
-            #    "testName":  f"UpdateOnly-{ex['name']}-{cf}-{tc}",
-            #    "encryptedFields": ex['encryptedFieldCount'],
-            #    "threadCount": tc,
-            #    "collectionName": ex['coll'],
-            #    "iterationsPerThread": math.floor(DOCUMENT_COUNT / tc),
-            #    "maxPhase": 2,
-            #    "shouldAutoRun": True,
-            #    "load": LoadPhase().generate(env),
-            #    "phases": [LoadPhase().generate(env), UpdatePhase().generate(env)]
-            #}
-            workload = WorkloadGenerator(ex, cf, tc)
+            workload = Workload(ex, cf, tc)
             print(template.render(workload.asContext()))

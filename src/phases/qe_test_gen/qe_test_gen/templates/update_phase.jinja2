@@ -1,9 +1,23 @@
-- Repeat: <<iterationsPerThread>>
+- Repeat: <<(iterationsPerThread / ctx.count) | int>>
   Collection: &collection_param {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
   MetricsName: "update"
   Operations:
+  {% for query in ctx.queries %}
+  {% for update in ctx.updates %}
   - OperationName: updateOne
     OperationMetricsName: updates
     OperationCommand:
-      Filter: { <<ctx.query_field>> : <<ctx.query_value>> }
-      Update: { <<ctx.update_field>> : <<ctx.update_value>> }
+      Filter:
+        {% if query[1] is string %}
+        <<query[0]>> : <<query[1]>>
+        {% else %}
+        <<query[0]>> :  { ^Choose: { from: <<query[1]>> } }
+        {% endif %}
+      Update:
+        {% if update[1] is string %}
+        <<update[0]>> : <<update[1]>>
+        {% else %}
+        <<update[0]>> :  { ^Choose: { from: <<update[1]>> } }
+        {% endif %}
+  {% endfor %}
+  {% endfor %}

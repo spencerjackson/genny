@@ -1,5 +1,6 @@
 
 import math
+import re
 
 import frequency_map
 
@@ -110,19 +111,17 @@ class LoadPhase:
     return template
 
 class UpdatePhase:
-  def __init__(self, env, queryField, queryValue, updateField, updateValue):
+  def __init__(self, env, query, update):
     self.env = env
-    self.queryField = queryField
-    self.queryValue = queryValue
-    self.updateField = updateField
-    self.updateValue = updateValue
+    self.queries =  query
+    self.updates = update
 
   def context(self):
+    print(self.queries)
     return {
-      'query_field': self.queryField,
-      'query_value': self.queryValue,
-      'update_field': self.updateField,
-      'update_value': self.updateValue
+      'count': len(self.queries) * len(self.updates),
+      'queries': self.queries,
+      'updates': self.updates
     }
 
   def generate(self):
@@ -142,11 +141,11 @@ class PhaseFactory:
   def transformField(selector):
     """Convert a field selector in a query against a field or a set of fields"""
     if selector == "_id":
-      return "_id"
+      return ["_id"]
 
     # Fixed field
     if selector.startswith("fixed_"):
-      return "field" + selector.replace("fixed_", "")
+      return ["field" + selector.replace("fixed_", "")]
   
     if selector.startswith("uar_"):
       # print(selector)
@@ -166,7 +165,7 @@ class PhaseFactory:
     raise NotImplemented()
 
 
-  def transformValueSelector(self, field: str, selector:str):
+  def transformValueSelector(self, field, selector:str):
     """Convert a value selector into a set of values to query"""
 
     field_num = -1
@@ -176,7 +175,7 @@ class PhaseFactory:
     if field.startswith("field"):
       print("hit")
       field_num = int(field.replace("field", ""))
-      fb = self.freq_map[field_num]
+      fb = self.freq_buckets[field_num]
 
     if selector == "uar":
       return fb.uar()
@@ -190,12 +189,18 @@ class PhaseFactory:
     raise NotImplemented()
 
   def parseFieldValue(self, target):
-    return (PhaseFactory.transformField(target['field']), self.transformValueSelector(target['field'], target['value']))
+    queryFields = PhaseFactory.transformField(target['field'])
+    ret = []
+    
+    for queryField in queryFields:
+      ret.append((queryField,  self.transformValueSelector(queryField, target['value'])))
+
+    return ret
 
   def makePhases(self, env):
     query = self.parseFieldValue(self.ex['query'])
     update = self.parseFieldValue(self.ex['update'])
-    return [LoadPhase(env), UpdatePhase(env, query[0], query[1], update[0], update[1])]
+    return [LoadPhase(env), UpdatePhase(env, query, update)]
 
 class Workload:
   def __init__(self, ex, cf, tc, phaseDescription):

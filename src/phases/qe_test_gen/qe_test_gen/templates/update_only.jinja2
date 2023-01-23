@@ -23,12 +23,12 @@ Encryption:
     Collection: <<collectionName>>
     EncryptionType: queryable
 
-QueryableEncryptedFields:
-  field0: &field_schema { type: "string", queries: [{queryType: "equality", contention: <<contentionFactor>> }}] }
-{% for num in range(1, encryptedFields) %}
-  field<<num>>: *field_schema
-{% endfor %}
-{% endif %}
+    QueryableEncryptedFields:
+      field0: &field_schema { type: "string", queries: [{queryType: "equality", contention: <<contentionFactor>> }] }
+    {% for num in range(1, encryptedFields) %}
+      field<<num>>: *field_schema
+    {% endfor %}
+    {% endif %}
 
 Clients:
   EncryptedPool:

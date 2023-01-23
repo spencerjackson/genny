@@ -1,4 +1,5 @@
 
+import argparse
 import math
 import re
 
@@ -117,7 +118,6 @@ class UpdatePhase:
     self.updates = update
 
   def context(self):
-    print(self.queries)
     return {
       'count': len(self.queries) * len(self.updates),
       'queries': self.queries,
@@ -148,10 +148,8 @@ class PhaseFactory:
       return ["field" + selector.replace("fixed_", "")]
   
     if selector.startswith("uar_"):
-      # print(selector)
       uar_re = r"uar_\[(\d),\s*(\d+)\]"
       m = re.match(uar_re, selector)
-      # print(m)
       assert m is not None
       lower_bound = int(m[1])
       upper_bound = int(m[2])
@@ -170,10 +168,8 @@ class PhaseFactory:
 
     field_num = -1
     fb = None
-    print(field)
-    print( field.startswith("field"))
+
     if field.startswith("field"):
-      print("hit")
       field_num = int(field.replace("field", ""))
       fb = self.freq_buckets[field_num]
 
@@ -203,12 +199,13 @@ class PhaseFactory:
     return [LoadPhase(env), UpdatePhase(env, query, update)]
 
 class Workload:
-  def __init__(self, ex, cf, tc, phaseDescription):
-    self.name = ex['name']
+  def __init__(self, ex, cf, tc, subExperiment, phaseDescription):
+    self.testName =  f"UpdateOnly-{ex['name']}-{subExperiment}-{cf}-{tc}"
     self.contentionFactor = cf
     self.encryptedFields = ex['encryptedFieldCount']
     self.threadCount = tc
     self.collectionName = ex['coll']
+    self.subExperiment = subExperiment
 
     self.parser = PhaseFactory(phaseDescription)
 
@@ -216,13 +213,13 @@ class Workload:
     phases = self.parser.makePhases(env)
 
     context =  {
-      "testName": f"UpdateOnly-{self.name}-{cf}-{tc}",
+      "testName": self.testName,
       "contentionFactor": self.contentionFactor,
       "encryptedFields": self.encryptedFields,
       "threadCount": self.threadCount,
       "collectionName": self.collectionName,
       "iterationsPerThread": math.floor(DOCUMENT_COUNT / self.threadCount),
-      "maxPhase": len(phases),
+      "maxPhase": len(phases) - 1,
       "shouldAutoRun": True,
       "phases": phases
     }
@@ -232,9 +229,31 @@ class Workload:
 
 template = env.get_template("update_only.jinja2")
 
-for ex in EXPERIMENTS:
-    for cf in ex["contentionFactors"]:
+def main():
+  # type: () -> None
+  """Execute Main Entry point."""
+  parser = argparse.ArgumentParser(description='MongoDB QE Workload Generator.')
+
+  parser.add_argument('-v', '--verbose', action='count', help="Enable verbose tracing")
+  parser.add_argument('-d', '--destination', action='store', default="workload", help="Destination to write workload files")
+
+
+  args = parser.parse_args()
+
+  if args.verbose:
+      logging.basicConfig(level=logging.DEBUG)
+
+  for ex in EXPERIMENTS:
+    for subExperiment, phaseDescription in enumerate(ex["updates"]):
+      for cf in ex["contentionFactors"]:
         for tc in ex["threadCounts"]:
-          for phaseDescription in ex["updates"]:
-            workload = Workload(ex, cf, tc, phaseDescription)
-            print(template.render(workload.asContext()))
+          workload = Workload(ex, cf, tc, subExperiment, phaseDescription)
+  
+          path = f"{args.destination}/{workload.testName}.yml"
+          print(f"Writing {path}")
+  
+          with open(path, 'w+') as testFile:
+            testFile.write(template.render(workload.asContext()))
+
+if __name__== "__main__":
+    main()

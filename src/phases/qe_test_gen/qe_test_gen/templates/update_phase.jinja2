@@ -1,5 +1,5 @@
 - Repeat: <<(iterationsPerThread / ctx.count) | int>>
-  Collection: &collection_param {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
+  Collection: {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
   MetricsName: "update"
   Operations:
   {% for query in ctx.queries %}
@@ -14,10 +14,11 @@
         <<query[0]>> :  { ^Choose: { from: <<query[1]>> } }
         {% endif %}
       Update:
-        {% if update[1] is string %}
-        <<update[0]>> : <<update[1]>>
-        {% else %}
-        <<update[0]>> :  { ^Choose: { from: <<update[1]>> } }
-        {% endif %}
+        $set:
+          {% if update[1] is string %}
+          <<update[0]>> : <<update[1]>>
+          {% else %}
+          <<update[0]>> :  { ^Choose: { from: <<update[1]>> } }
+          {% endif %}
   {% endfor %}
   {% endfor %}

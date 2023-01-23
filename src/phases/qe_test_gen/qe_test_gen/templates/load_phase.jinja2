@@ -1,5 +1,5 @@
 - Repeat: <<iterationsPerThread>>
-  Collection: &collection_param {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
+  Collection: {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
   MetricsName: "load"
   Operations:
   - OperationName: insertOne
@@ -7,7 +7,8 @@
     OperationCommand:
       Document:
         LoadConfig:
-          Path: ../../phases/encrypted2/maps_<<collectionName>>.yml
-            Key: document_insert_<<collectionName>>
+          Path: ../phases/qe_test_gen/maps_<<collectionName>>.yml
+          Key: document_insert_<<collectionName>>
           Parameters:
             Database: ignored
+            multiplier: <<iterationsPerThread>>

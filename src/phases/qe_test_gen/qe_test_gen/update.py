@@ -96,7 +96,128 @@ EXPERIMENTS = [
         },
       },
     ]
-  }
+  },
+  {
+    #
+    "name": "es2",
+    "coll": "pbl",
+    "encryptedFieldCount" : 10,
+    "threadCounts" : [4, 8, 16],
+    "contentionFactors" : [1,4,8,16],
+    "updates" : [
+      {
+        "query" : {
+          "field" : "_id",
+          "value" : "fixed"
+        },
+        "update" : {
+          "field" : "fixed_10",
+          "value" : "fixed"
+        }
+      },
+      {
+        "query": {
+          "field": "fixed_10",
+          "value": "fixed_vlf"
+        },
+        "update": {
+          "field": "fixed_10",
+          "value": "uar",
+        },
+      },
+      {
+        "query": {
+          "field": "uar_[6,10]",
+          "value": "uar_alllow"
+        },
+        "update": {
+          "field": "uar_[6,10]",
+          "value": "uar"
+        },
+      },
+    ]
+  },
+  {
+    # Experiment Set u.3: Update encrypted fields on partially encrypted collection
+    "name": "es3",
+    "coll": "pbl",
+    "encryptedFieldCount" : 5,
+    "threadCounts" : [4, 8, 16],
+    "contentionFactors" : [1,4,8,16],
+    "updates" : [
+      {
+        "query" : {
+          "field" : "_id",
+          "value" : "fixed"
+        },
+        "update" : {
+          "field" : "fixed_1",
+          "value" : "fixed"
+        }
+      },
+      {
+        "query": {
+          "field": "fixed_1",
+          "value": "fixed_vlf"
+        },
+        "update": {
+          "field": "fixed_1",
+          "value": "uar",
+        },
+      },
+      {
+        "query": {
+          "field": "uar_[1,5]",
+          "value": "uar_alllow"
+        },
+        "update": {
+          "field": "uar_[1,5]",
+          "value": "uar"
+        },
+      }
+    ]
+  },
+  {
+    # Experiment Set u.4: Update encrypted fields on fully encrypted collection
+    "name": "es4",
+    "coll": "pbl",
+    "encryptedFieldCount" : 10,
+    "threadCounts" : [4, 8, 16],
+    "contentionFactors" : [1,4,8,16],
+    "updates" : [
+      {
+        "query" : {
+          "field" : "_id",
+          "value" : "fixed"
+        },
+        "update" : {
+          "field" : "fixed_1",
+          "value" : "fixed"
+        }
+      },
+      {
+        "query": {
+          "field": "fixed_1",
+          "value": "fixed_vlf"
+        },
+        "update": {
+          "field": "fixed_1",
+          "value": "uar",
+        },
+      },
+      {
+        "query": {
+          "field": "uar_[1,10]",
+          "value": "uar_alllow"
+        },
+        "update": {
+          "field": "uar_[1,10]",
+          "value": "uar"
+        },
+      }
+    ]
+  },
+
 ]
 DOCUMENT_COUNT=100000
 

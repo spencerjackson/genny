@@ -3,16 +3,13 @@
 {% include phase.generate() %}
 {% endwith %}
 {% endmacro %}
+{% macro X(snippet) %}
+<<snippet>>
+{% endmacro %}
 SchemaVersion: 2018-07-01
 Owner: "@10gen/server-security"
 Description: |
-  Performs a series of insert operations, using the following properties:
-    - All documents have 11 fields, including 1 _id field, and 10 data fields.
-    - The first <<encryptedFields>> data fields are encrypted.
-    - _id is always unique.
-    - Values in data fields fit a '<<collectionName>>' distribution.
-    - The insertions are performed by <<threadCount>> client threads.
-  This test is uniquely identified as '<<testName>>'.
+  {%+ include description %}
 
 {% if encryptedFields %}
 Encryption:

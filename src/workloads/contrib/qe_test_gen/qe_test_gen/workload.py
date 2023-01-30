@@ -105,22 +105,24 @@ class PhaseFactory:
     return [LoadPhase(env), UpdatePhase(env, query, update)]
 
 class Workload:
-  def __init__(self, env, ex, cf, tc, subExperiment, phaseDescription):
+  def __init__(self, testName, description, coll, env, ef, cf, tc, phaseFactory):
     self.env = env
-    self.testName =  f"UpdateOnly-{ex['name']}-{subExperiment}-{cf}-{tc}"
+    self.testName = testName
+    self.description = description
+    #self.testName =  f"UpdateOnly-{ex['name']}-{subExperiment}-{cf}-{tc}"
     self.contentionFactor = cf
-    self.encryptedFields = ex['encryptedFieldCount']
+    self.encryptedFields = ef
     self.threadCount = tc
-    self.collectionName = ex['coll']
-    self.subExperiment = subExperiment
+    self.collectionName = coll
 
-    self.parser = PhaseFactory(phaseDescription)
+    self.parser = phaseFactory
 
   def asContext(self):
     phases = self.parser.makePhases(self.env)
 
     context =  {
       "testName": self.testName,
+      "description": self.description,
       "contentionFactor": self.contentionFactor,
       "encryptedFields": self.encryptedFields,
       "threadCount": self.threadCount,

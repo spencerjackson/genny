@@ -63,6 +63,8 @@ class Dataset:
                 freqList = self.generateValueFreqs(ndocs, freqRange.lb, freqRange.ub)
             elif (typeDS == 'pbl'):
                 freqList = self.generatePBLValueFreqs(ndocs)
+            elif (typeDS == 'blimit'):
+                freqList = self.generateBlimitValueFreqs(ndocs)
             else:
                 raise Exception("Wrong typeDS")
             assert(sum(freqList) == ndocs)
@@ -123,6 +125,23 @@ class Dataset:
             nvalues += 1
 
         return freqList # can return nvalues if needed
+
+    def generateBlimitValueFreqs(self, ndocs):
+      freqList = []
+      targetFrequency = 2
+      sumFreq = 0
+      nvalues = 0
+
+      while (sumFreq < ndocs):
+        freqList.append(targetFrequency)
+        sumFreq += targetFrequency
+        nvalues += 1
+
+      assert(nvalues == 500000)
+      assert(sumFreq == 1000000)
+
+      return freqList
+      
 
 
     def toJSONDict(self):

@@ -34,7 +34,7 @@ def main():
   if args.verbose:
       logging.basicConfig(level=logging.DEBUG)
 
-  for coll in ["pbl"]:
+  for coll in ["vlf", "mlf", "lf", "hf", "mhf", "vhf", "blimit", "pbl"]:
     for ef in [0, 1, 5, 10]:
       for cf in [1, 4, 8, 16]:
         for tc in [1, 4, 8, 16]:

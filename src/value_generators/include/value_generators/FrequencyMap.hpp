@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#ifndef HEADER_0BC4D6BC_FC92_4F1C_BAEA_26A633807830_INCLUDE
+#define HEADER_0BC4D6BC_FC92_4F1C_BAEA_26A633807830_INCLUDE
 
 #include <cstdint>
 #include <exception>
 #include <memory>
-
-#include <boost/random.hpp>
-#include <numeric>
 #include <stdexcept>
-#include <unordered_map>
+#include <string>
+#include <vector>
 
-namespace genny {
-namespace v1 {
+namespace genny::v1 {
 
 /**
  * Genny frequency map. A list of pairs <string, count>
@@ -33,21 +31,22 @@ namespace v1 {
  */
 class FrequencyMap {
 public:
-
     /**
-     * Add an item and a count to the pack of the list of items in the map.
+     * Add an item and a count to the back of the list of items in the map.
      */
     void push_back(std::string name, size_t count) {
         _list.push_back({name, count});
     }
 
     /**
-     * Take a instance of one of the items, decrements the count
+     * Take a instance of one of the items, decrements the count.
      *
      * It the count for the item goes to zero, it removes the item.
+     *
+     * Throws an error if there are no items in the map.
      */
     std::string take(size_t index) {
-        if(index >= _list.size() ) {
+        if (index >= _list.size()) {
             throw std::range_error("Out of bounds of frequency map");
         }
 
@@ -56,7 +55,7 @@ public:
         pair.second--;
 
         // We have taken all the entries for this element
-        if(pair.second == 0) {
+        if (pair.second == 0) {
             _list.erase(_list.begin() + index);
         }
 
@@ -66,22 +65,27 @@ public:
     /**
      * Returns the number of elements with counts
      */
-    size_t size() const  {  return _list.size(); }
+    size_t size() const {
+        return _list.size();
+    }
 
     /**
      * Returns a total size of the frequency map
      */
     size_t total_count() const {
         size_t total_count = 0;
-        for(const auto& p : _list) {
+
+        for (const auto& p : _list) {
             total_count += p.second;
         }
+
         return total_count;
     }
 
 private:
     std::vector<std::pair<std::string, uint64_t>> _list;
 };
-}  // namespace v1
 
-}  // namespace genny
+}  // namespace genny::v1
+
+#endif

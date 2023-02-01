@@ -602,47 +602,55 @@ protected:
     bool _deterministic;
 };
 
-// TODO
+/**
+ * FrequencyMaps
+ * A list of {string, count} pairs.
+ * An item will be pulled from a random bucket and its count will be decremented. If all buckets are
+ * empty, the generator throws an error.
+ */
 class FrequencyMapGenerator : public Generator<std::string> {
 public:
     FrequencyMapGenerator(const Node& node, GeneratorArgs generatorArgs) : _rng{generatorArgs.rng} {
         if (!node["from"].isMap()) {
             std::stringstream msg;
-            msg << "Malformed node for choose from a map " << node;
+            msg << "Malformed node for 'TakeRandomStringFromFrequencyMap' from a map " << node;
             BOOST_THROW_EXCEPTION(InvalidValueGeneratorSyntax(msg.str()));
         }
+
         for (const auto&& [k, v] : node["from"]) {
-            _map.push_back(v.key(), (size_t)(v.maybe<std::int64_t>().value()));
+            _map.push_back(v.key(), v.to<std::size_t>());
         }
     }
 
     std::string evaluate() override {
-
         if (_map.size() == 1) {
             return _map.take(0);
         }
 
-        // Pick a random number between 0 and _map.size()
+        // Pick a random number between 0 and _map.size() inclusive
         auto distribution = boost::random::uniform_int_distribution<size_t>(0, _map.size() - 1);
         auto value = distribution(_rng);
         return _map.take(value);
     };
 
-protected:
+private:
     DefaultRandom& _rng;
     v1::FrequencyMap _map;
 };
 
-
-// TODO
+/**
+ * Singleton FrequencyMaps
+ * Keep singletons shared frequency maps shared across threads.
+ * This can be used to ensure the distribution across threads matches exactly. This is important if
+ * you want a single value for given thread, but use multiple threads to load the data. Maps are
+ * identified by their "id" are shared.
+ */
 class FrequencyMapSingletonGenerator : public Generator<std::string> {
 public:
-    FrequencyMapSingletonGenerator(const Node& node, GeneratorArgs generatorArgs)
-        : _rng{generatorArgs.rng} {
-
+    FrequencyMapSingletonGenerator(const Node& node, GeneratorArgs generatorArgs) {
         _id = node["id"].maybe<std::string>().value();
 
-        // Keep a singleton of these generators
+        // Keep a singleton of these generators by id
         {
             std::lock_guard<std::mutex> lck(_mutex);
 
@@ -658,15 +666,15 @@ public:
         return _generators.at(_id).evaluate();
     };
 
-protected:
-    DefaultRandom& _rng;
+private:
     std::string _id;
+
     static std::unordered_map<std::string, FrequencyMapGenerator> _generators;
     static std::mutex _mutex;
 };
 
-    std::unordered_map<std::string, FrequencyMapGenerator>   FrequencyMapSingletonGenerator::_generators;
-    std::mutex FrequencyMapSingletonGenerator::_mutex;
+std::unordered_map<std::string, FrequencyMapGenerator> FrequencyMapSingletonGenerator::_generators;
+std::mutex FrequencyMapSingletonGenerator::_mutex;
 
 class IPGenerator : public Generator<std::string> {
 public:
@@ -1378,9 +1386,23 @@ protected:
     std::vector<UniqueGenerator<bsoncxx::array::value>> _parts;
 };
 
-/** `{^Object: {withNEntries: 10, havingKeys: {^Foo}, andValues: {^Bar}}` */
+/**
+ * `{^Object: {withNEntries: 10, havingKeys: {^Foo}, andValues: {^Bar}, allowDuplicateKeys: bool}`
+ */
 class ObjectGenerator : public Generator<bsoncxx::document::value> {
 public:
+    enum class OnDuplicatedKeys {
+        // BSON supports objects with duplicated keys and in some cases we might want to test such
+        // scenarios. Allowing to insert duplicated keys is faster than tracking them, so in the
+        // cases when duplicates are impossible (or unlikely and don't affect the test), this option
+        // is also a good choice.
+        insert = 0,
+        // The configuration to skip duplicated keys tracks already inserted keys and never inserts
+        // duplicates. This means that the resulting object might have fewer keys than specified in
+        // 'withNEntries' setting.
+        skip,
+        // TODO: "retry" option, that is, regenerate the key until get a unique one.
+    };
     ObjectGenerator(const Node& node,
                     GeneratorArgs generatorArgs,
                     std::map<std::string, Parser<UniqueAppendable>> parsers)
@@ -1390,13 +1412,28 @@ public:
           _keyGen{stringGenerator(node["havingKeys"], generatorArgs)},
           _valueGen{
               valueGenerator<false, UniqueAppendable>(node["andValues"], generatorArgs, parsers)},
-          _nTimesGen{intGenerator(extract(node, "withNEntries", "^Object"), generatorArgs)} {}
+          _nTimesGen{intGenerator(extract(node, "withNEntries", "^Object"), generatorArgs)} {
+            const auto duplicatedKeys = _node["duplicatedKeys"].to<std::string>();
+            if (duplicatedKeys == "insert") {
+                _onDuplicatedKeys = OnDuplicatedKeys::insert;
+            } else if (duplicatedKeys == "skip") {
+                _onDuplicatedKeys = OnDuplicatedKeys::skip;
+            } else {
+                BOOST_THROW_EXCEPTION(InvalidValueGeneratorSyntax(
+                    "Unknown value for 'duplicatedKeys'"));
+            }
+          }
 
     bsoncxx::document::value evaluate() override {
         bsoncxx::builder::basic::document builder;
         auto times = _nTimesGen->evaluate();
+
+        std::unordered_set<std::string> usedKeys;
         for (int i = 0; i < times; ++i) {
-            _valueGen->append(_keyGen->evaluate(), builder);
+            auto key = _keyGen->evaluate();
+            if (_onDuplicatedKeys == OnDuplicatedKeys::insert || usedKeys.insert(key).second) {
+                _valueGen->append(key, builder);
+            }
         }
         return builder.extract();
     }
@@ -1408,6 +1445,7 @@ private:
     const UniqueGenerator<std::string> _keyGen;
     const UniqueAppendable _valueGen;
     const UniqueGenerator<int64_t> _nTimesGen;
+    OnDuplicatedKeys _onDuplicatedKeys;
 };
 
 
@@ -1569,7 +1607,7 @@ Out valueGenerator(const Node& node,
         return std::make_unique<ConstantAppender<bsoncxx::types::b_null>>();
     }
     if (node.isScalar()) {
-        if (node.tag() != "!") {
+        if (node.tag() != "tag:yaml.org,2002:str") {
             try {
                 return std::make_unique<ConstantAppender<int32_t>>(node.to<int32_t>());
             } catch (const InvalidConversionException& e) {

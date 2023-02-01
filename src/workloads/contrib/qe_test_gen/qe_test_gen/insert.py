@@ -52,7 +52,7 @@ def main():
   
           path = f"{args.destination}/{testName}.yml"
           print(f"Writing {path}")
-  Z
+
           with open(path, 'w+') as testFile:
             testFile.write(template.render(workload.asContext()))
 

@@ -54,8 +54,9 @@ class Workload:
       "encryptedFields": self.encryptedFields,
       "threadCount": self.threadCount,
       "collectionName": self.collectionName,
+      "documentCount": DOCUMENT_COUNT,
       "iterationsPerThread": math.floor(DOCUMENT_COUNT / self.threadCount),
-      "maxPhase": len(phases) - 1,
+      "maxPhase": len(phases),
       "shouldAutoRun": True,
       "phases": phases
     }

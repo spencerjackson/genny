@@ -110,7 +110,8 @@ void MonotonicSingleLoader::run() {
 
 MonotonicSingleLoader::MonotonicSingleLoader(genny::ActorContext& context)
     : Actor{context},
-      _client{context.client()},
+      _client{std::move(
+			context.client(context.get("ClientName").maybe<std::string>().value_or("Default")))},
       _totalBulkLoad{context.operation("TotalBulkInsert", MonotonicSingleLoader::id())},
       _individualBulkLoad{context.operation("IndividualBulkInsert", MonotonicSingleLoader::id())},
       _docIdCounter{

@@ -16,7 +16,7 @@ class InsertPhaseFactory:
     self.coll = coll
 
   def makePhases(self, env):
-    return [LoadPhase(env)]
+    return []
 
 template = env.get_template("update_only.jinja2")
 
@@ -52,7 +52,7 @@ def main():
   
           path = f"{args.destination}/{testName}.yml"
           print(f"Writing {path}")
-  
+  Z
           with open(path, 'w+') as testFile:
             testFile.write(template.render(workload.asContext()))
 

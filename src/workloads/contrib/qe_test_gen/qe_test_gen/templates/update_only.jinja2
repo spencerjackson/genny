@@ -41,15 +41,41 @@ Clients:
 
 
 Actors:
+  - Name: QEDataLoader
+    Type: MonotonicSingleLoader
+    Threads: <<threadCount>>
+    ClientName: EncryptedPool
+    Phases:
+    - Repeat: 1
+      MetricsName: "load"
+      MultipleThreadsPerCollection: true
+      DocumentCount: <<documentCount>>
+      Collection: <<collectionName>>
+      BatchSize: 1000
+      Database: genny_qebench2
+      Document:
+        LoadConfig:
+          Path: contrib//qe_test_gen/maps_<<collectionName>>.yml
+          Key: document_insert_<<collectionName>>
+          Parameters:
+            Database: ignored
+            multiplier: <<iterationsPerThread>>
+    {% for phase in phases %}
+    - Nop: True
+    {% endfor %}
+
+  {% if phases %} 
   - Name: InsertActor
     Type: CrudActor
     Threads: <<threadCount>>
     Database: genny_qebench2
     ClientName: EncryptedPool
     Phases:
+    
     {% for phase in phases %}
     << ingest(phase) | indent >>
     {% endfor %}
+  {% endif %}
   
   - Name: LoggingActor0
     Type: LoggingActor

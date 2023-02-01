@@ -128,7 +128,7 @@ class Dataset:
 
     def generateBlimitValueFreqs(self, ndocs):
       freqList = []
-      targetFrequency = 2
+      targetFrequency = 500000
       sumFreq = 0
       nvalues = 0
 
@@ -137,7 +137,7 @@ class Dataset:
         sumFreq += targetFrequency
         nvalues += 1
 
-      assert(nvalues == 500000)
+      assert(nvalues == 2)
       assert(sumFreq == 1000000)
 
       return freqList

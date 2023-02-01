@@ -1,0 +1,103 @@
+SchemaVersion: 2018-07-01
+Owner: "@10gen/server-security"
+Description: |
+    Mimics a YCSB workload, with queryable encryption enabled. Performs queries on an encrypted
+    field, instead of _id, during the read/update phase.
+
+##############################
+########## mhf
+map_mhf_f1: &map_mhf_f1
+    id: map_mhf_f1
+    from:
+        v1: 14407
+        v2: 43111
+        v3: 30827
+        v4: 11655
+
+map_mhf_f2: &map_mhf_f2
+    id: map_mhf_f2
+    from:
+        v1: 48011
+        v2: 36631
+        v3: 15358
+
+map_mhf_f3: &map_mhf_f3
+    id: map_mhf_f3
+    from:
+        v1: 14576
+        v2: 19203
+        v3: 19262
+        v4: 20393
+        v5: 26566
+
+map_mhf_f4: &map_mhf_f4
+    id: map_mhf_f4
+    from:
+        v1: 32384
+        v2: 47221
+        v3: 13839
+        v4: 6556
+
+map_mhf_f5: &map_mhf_f5
+    id: map_mhf_f5
+    from:
+        v1: 20435
+        v2: 41935
+        v3: 37630
+
+map_mhf_f6: &map_mhf_f6
+    id: map_mhf_f6
+    from:
+        v1: 12029
+        v2: 25104
+        v3: 20880
+        v4: 27886
+        v5: 14101
+
+map_mhf_f7: &map_mhf_f7
+    id: map_mhf_f7
+    from:
+        v1: 20875
+        v2: 30529
+        v3: 11525
+        v4: 37071
+
+map_mhf_f8: &map_mhf_f8
+    id: map_mhf_f8
+    from:
+        v1: 19636
+        v2: 29423
+        v3: 30188
+        v4: 15594
+        v5: 5159
+
+map_mhf_f9: &map_mhf_f9
+    id: map_mhf_f9
+    from:
+        v1: 16356
+        v2: 20657
+        v3: 34284
+        v4: 28703
+
+map_mhf_f10: &map_mhf_f10
+    id: map_mhf_f10
+    from:
+        v1: 38320
+        v2: 20034
+        v3: 35994
+        v4: 5652
+
+
+document_insert_mhf:
+    _id:     {^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}
+    field1:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f1 }
+    field2:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f2 }
+    field3:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f3 }
+    field4:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f4 }
+    field5:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f5 }
+    field6:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f6 }
+    field7:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f7 }
+    field8:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f8 }
+    field9:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f9 }
+    field10:  {^TakeRandomStringFromFrequencyMapSingleton: *map_mhf_f10 }
+

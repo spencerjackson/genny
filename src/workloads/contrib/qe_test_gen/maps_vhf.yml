@@ -1,0 +1,72 @@
+SchemaVersion: 2018-07-01
+Owner: "@10gen/server-security"
+Description: |
+    Mimics a YCSB workload, with queryable encryption enabled. Performs queries on an encrypted
+    field, instead of _id, during the read/update phase.
+
+##############################
+########## vhf
+map_vhf_f1: &map_vhf_f1
+    id: map_vhf_f1
+    from:
+        v1: 100000
+
+map_vhf_f2: &map_vhf_f2
+    id: map_vhf_f2
+    from:
+        v1: 100000
+
+map_vhf_f3: &map_vhf_f3
+    id: map_vhf_f3
+    from:
+        v1: 100000
+
+map_vhf_f4: &map_vhf_f4
+    id: map_vhf_f4
+    from:
+        v1: 100000
+
+map_vhf_f5: &map_vhf_f5
+    id: map_vhf_f5
+    from:
+        v1: 100000
+
+map_vhf_f6: &map_vhf_f6
+    id: map_vhf_f6
+    from:
+        v1: 100000
+
+map_vhf_f7: &map_vhf_f7
+    id: map_vhf_f7
+    from:
+        v1: 100000
+
+map_vhf_f8: &map_vhf_f8
+    id: map_vhf_f8
+    from:
+        v1: 100000
+
+map_vhf_f9: &map_vhf_f9
+    id: map_vhf_f9
+    from:
+        v1: 100000
+
+map_vhf_f10: &map_vhf_f10
+    id: map_vhf_f10
+    from:
+        v1: 100000
+
+
+document_insert_vhf:
+    _id:     {^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}
+    field1:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f1 }
+    field2:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f2 }
+    field3:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f3 }
+    field4:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f4 }
+    field5:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f5 }
+    field6:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f6 }
+    field7:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f7 }
+    field8:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f8 }
+    field9:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f9 }
+    field10:  {^TakeRandomStringFromFrequencyMapSingleton: *map_vhf_f10 }
+

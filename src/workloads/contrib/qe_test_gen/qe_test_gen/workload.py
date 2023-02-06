@@ -41,6 +41,10 @@ class Workload:
     self.encryptedFields = ef
     self.threadCount = tc
     self.collectionName = coll
+    self.documentCount = DOCUMENT_COUNT
+
+    if coll == "blimit":
+      self.documentCount = 1_000_000
 
     self.parser = phaseFactory
 
@@ -54,7 +58,7 @@ class Workload:
       "encryptedFields": self.encryptedFields,
       "threadCount": self.threadCount,
       "collectionName": self.collectionName,
-      "iterationsPerThread": math.floor(DOCUMENT_COUNT / self.threadCount),
+      "iterationsPerThread": math.floor(self.documentCount / self.threadCount),
       "maxPhase": len(phases) - 1,
       "shouldAutoRun": True,
       "phases": phases

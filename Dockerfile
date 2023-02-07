@@ -19,7 +19,13 @@ RUN curl http://mongodbtoolchain.build.10gen.cc/installer.sh | bash
 RUN mkdir -p /{data/mci,genny}
 WORKDIR /genny
 
+RUN mkdir -p /genny/build/curator
+RUN curl https://s3.amazonaws.com/boxes.10gen.com/build/curator/curator-dist-rhel70-3df28d2514d4c4de7c903d027e43f3ee48bf8ec1.tar.gz | tar -xvzf - -C /genny/build/curator
+
 FROM base as build
+
+RUN mkdir -p /data/mci/gennytoolchain
+RUN curl https://s3.amazonaws.com/mciuploads/genny-toolchain/genny_toolchain_amazon2_b563d3ba01a8b1a4fa4249e9eb0ad5c9bc11816b_22_12_12_21_24_44/gennytoolchain.tgz | tar -xvzf - -C /data/mci/gennytoolchain
 
 ADD . .
 RUN ./run-genny install -d amazon2

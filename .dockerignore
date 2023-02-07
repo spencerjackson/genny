@@ -1,5 +1,8 @@
+.\#*
+
 Dockerfile
 .dockerignore
+
 src/phases/*
 !src/phases/CMakeLists.txt
 src/workloads/*

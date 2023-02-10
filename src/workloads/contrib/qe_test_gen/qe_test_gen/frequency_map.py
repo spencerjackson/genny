@@ -9,8 +9,8 @@ import dataStructures
 
 regex = r"map_(\w+)_f(\d+)"
 
-def load_map(file_name: str):
 
+def load_map(file_name: str):
     with open(file_name) as fh:
         map_file = yaml.load(fh, yaml.FullLoader)
 
@@ -23,9 +23,10 @@ def load_map(file_name: str):
             coll = m[1]
             field_num = int(m[2])
             # print(m[1], m[2])
-            freq_map[field_num ] = map_file[k]["from"]
+            freq_map[field_num] = map_file[k]["from"]
 
     return freq_map
+
 
 def get_bucket_name(c, v: int):
     for k_r in c.ranges.keys():
@@ -35,6 +36,7 @@ def get_bucket_name(c, v: int):
             return k_r
     else:
         raise ValueError()
+
 
 class FrequencyBuckets:
     def __init__(self, freq_map):
@@ -63,9 +65,9 @@ class FrequencyBuckets:
     def fixed_bucket(self, bucket):
         items_list = self.buckets[bucket]
         if bucket in ["vlf", "mlf", "mf"]:
-            return min(items_list, key= lambda x: x[1])[0]
+            return min(items_list, key=lambda x: x[1])[0]
         else:
-            return max(items_list, key= lambda x: x[1])[0]
+            return max(items_list, key=lambda x: x[1])[0]
 
     def uar(self):
         return list(self.full_map.keys())
@@ -79,17 +81,19 @@ class FrequencyBuckets:
     def uar_all_high(self):
         return self.uar_bucket("hf") + self.uar_bucket("mhf") + self.uar_bucket("hf")
 
+
 def main():
     a = load_map("maps_pbl.yml")
 
     print(a[1])
 
-    b  = FrequencyBuckets(a[1])
+    b = FrequencyBuckets(a[1])
 
     print(b.buckets)
 
     print("FV:" + b.fixed_value())
     print("FV:" + b.fixed_bucket("hf"))
 
-if __name__== "__main__":
+
+if __name__ == "__main__":
     main()

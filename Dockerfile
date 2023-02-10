@@ -27,7 +27,10 @@ FROM base as build
 RUN mkdir -p /data/mci/gennytoolchain
 RUN curl https://s3.amazonaws.com/mciuploads/genny-toolchain/genny_toolchain_amazon2_b563d3ba01a8b1a4fa4249e9eb0ad5c9bc11816b_22_12_12_21_24_44/gennytoolchain.tgz | tar -xvzf - -C /data/mci/gennytoolchain
 
-ADD . .
+COPY LICENSE.txt THIRD-PARTY-NOTICES.txt  CMakeLists.txt pyproject.toml run-genny run_workloads.sh .
+COPY ./cmake/ ./cmake/
+COPY ./src/ ./src
+COPY ./.git/ ./.git
 RUN ./run-genny install -d amazon2
 
 FROM base

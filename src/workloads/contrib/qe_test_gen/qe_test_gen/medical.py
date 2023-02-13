@@ -137,6 +137,19 @@ class DiagnosisDistribution(ExplicitDistribution):
         diagnosis_code[fresh_code] = f
     super(DiagnosisDistribution, self).__init__(field_name, diagnosis_code)
 
+class UniformDistribution(ExplicitDistribution):
+  def __init__(self, field_name: str, values):
+    numDocs = 1000000
+    target = math.floor(numDocs / len(values))
+
+    distribution = {}
+
+    for value in values:
+      distribution[value] = target
+
+    super(UniformDistribution, self).__init__(field_name, distribution)
+
+status_codes = UniformDistribution("status", [f"A{x}" for x in range(1, 21)])
 
 def make_credit_cards():
     faker = Faker()
@@ -148,11 +161,22 @@ def make_credit_cards():
 
     return credit_cards
 
-credit_cards = make_credit_cards()
+credit_cards = UniformDistribution("credit_cards", make_credit_cards())
+
+class SequenceDistribution(Distribution):
+    def __init__(self, field_name: str, prefix: str):
+        super(SequenceDistribution, self).__init__(field_name)
+        self.prefix = prefix
+
+    def emit_generator(self):
+        template = env.get_template("sequence_distribution.jinja2")
+        return Snippet(template, {"field_name": self.field_name, "prefix": self.prefix})
+
+guids = SequenceDistribution("guid", "99999999-9999-9999-99999")
 
 with open("medical.map", "w+") as mapFile:
     mapFile.write(
         template.render(
-            {"objFields": [states.emit_generator(), DiagnosisDistribution("diagnosis").emit_generator()], "credit_cards": credit_cards}
+            {"objFields": [states.emit_generator(), DiagnosisDistribution("diagnosis").emit_generator(), status_codes.emit_generator(), credit_cards.emit_generator(), guids.emit_generator()]}
         )
     )

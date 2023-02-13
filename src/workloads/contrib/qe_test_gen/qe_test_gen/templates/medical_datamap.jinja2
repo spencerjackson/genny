@@ -13,20 +13,11 @@ Description: |
 
 {% for phase in objFields %}
 << ingest(phase) | indent >>
-{% endfor %}
 
-f4_crt_uni: &f4_crt_uni
-    id: f4_crt_uni
-    from:
-        {% for card in credit_cards %}
-        <<card>>: 10
-        {% endfor %}
+{% endfor %}
 
 document_insert_medical:
     _id:     {^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}
     {% for phase in objFields %}
     <<phase.context().field_name>>: *field_<<phase.context().field_name>>
     {% endfor %}
-    status:  { ^Choose: { from: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A20"] } }
-    credit:  {^TakeRandomStringFromFrequencyMapSingleton: *f4_crt_uni }
-    guid:  {^Join: {array: [ "99999999-9999-9999-99999", {^FormatString: {"format": "%|07d|", "withArgs": [{^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}]}}]}}

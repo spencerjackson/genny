@@ -11,12 +11,6 @@ Description: |
 ##############################
 ########## pbl
 
-f2_mdc_pbl: &f2_mdc_pbl
-    id: f2_mdc_pbl
-    from:
-        {% for key, value in diagnosis_code.items() %}
-        <<key>>: <<value>>
-        {% endfor  %}
 f4_crt_uni: &f4_crt_uni
     id: f4_crt_uni
     from:
@@ -24,15 +18,11 @@ f4_crt_uni: &f4_crt_uni
         <<card>>: 10
         {% endfor %}
 
-hexabet: &hexabet "0123456789abcdef"
-
-
 document_insert_medical:
     _id:     {^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}
     {% for phase in objFields %}
     << ingest(phase) | indent >>
     {% endfor %}
-    diagnosis:  {^TakeRandomStringFromFrequencyMapSingleton: *f2_mdc_pbl }
     status:  { ^Choose: { from: ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15", "A16", "A17", "A18", "A19", "A20"] } }
     credit:  {^TakeRandomStringFromFrequencyMapSingleton: *f4_crt_uni }
     guid:  {^Join: {array: [ "99999999-9999-9999-99999", {^FormatString: {"format": "%|07d|", "withArgs": [{^Inc: {start: 1, multiplier: {^Parameter: {Name: "multiplier", Default: 0}}}}]}}]}}

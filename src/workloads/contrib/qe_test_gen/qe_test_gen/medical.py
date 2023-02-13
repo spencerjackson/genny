@@ -105,8 +105,8 @@ states = ExplicitDistribution(
     },
 )
 
-
-def make_diagnosis_code():
+class DiagnosisDistribution(ExplicitDistribution):
+  def __init__(self, field_name: str):
     sum = 0
     frequency = []
 
@@ -116,12 +116,13 @@ def make_diagnosis_code():
 
     for i in range(1, 5001):
         f_i = math.ceil(1000000 * ((i**-2) / h))
-        frequency.append(f_i)
         sum += f_i
 
-    if sum > 1000000:
-        print(f"Frequency: {frequency[0]} Sum: {sum}")
-        frequency[0] = frequency[0] - (sum - 1000000)
+    for i in range(1, 5001):
+        f_i = math.ceil(1000000 * ((i**-2) / h))
+        if i == 1 and sum > 1000000:
+          f_i = f_i  - (sum - 1000000)
+        frequency.append(f_i)
 
     rnd = Random()
     rnd.seed(10000)
@@ -134,8 +135,7 @@ def make_diagnosis_code():
         while fresh_code in diagnosis_code:
             fresh_code = gen_fresh_code()
         diagnosis_code[fresh_code] = f
-
-    return diagnosis_code
+    super(DiagnosisDistribution, self).__init__(field_name, diagnosis_code)
 
 
 def make_credit_cards():
@@ -148,25 +148,11 @@ def make_credit_cards():
 
     return credit_cards
 
-
-# with open("states.txt", "w+") as stateFile:
-#    for key, value in states.items():
-#        stateFile.write(key + "\n")
-
-diagnosis_code = make_diagnosis_code()
-# with open("diagnosis_code.txt", "w+") as diagnosisFile:
-#    for key, value in diagnosis_code.items():
-#        diagnosisFile.write(key + "\n")
-
 credit_cards = make_credit_cards()
-# with open("credit_cards.txt", "w+") as cardFile:
-#    for card in credit_cards:
-#        cardFile.write(card + "\n")
-
 
 with open("medical.map", "w+") as mapFile:
     mapFile.write(
         template.render(
-            {"objFields": [states.emit_generator()], "diagnosis_code": diagnosis_code, "credit_cards": credit_cards}
+            {"objFields": [states.emit_generator(), DiagnosisDistribution("diagnosis").emit_generator()], "credit_cards": credit_cards}
         )
     )

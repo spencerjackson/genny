@@ -1,0 +1,29 @@
+- Repeat: <<iterationsPerThread>>
+  Collection: {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
+  MetricsName: "FSM"
+  InitialStates:
+    - State: Query
+      Weight: 1
+    - State: Update
+      Weight: 0
+  StateTransitions: &transitions
+    - To: Query
+      Weight: 1
+      SleepBefore: {^TimeSpec: {value: 0}}
+    - To: Update
+      Weight: 0
+      SleepBefore: {^TimeSpec: {value: 0}}
+  States:
+    - Name: Query
+      Operations:
+        - OperationName: findOne
+          OperationMetricsName: query
+          OperationCommand:
+            Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+    - Name: Update
+      Operations:
+        - OperationName: updateOne
+          OperationMetricsName: update
+          OperationCommand:
+            Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+            Update: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}

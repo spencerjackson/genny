@@ -31,26 +31,34 @@ class Snippet:
 
 
 class Distribution(ABC):
-    def __init__(self, field_name: str):
+    def __init__(self, field_name: str, contention_factor: int):
         self.field_name = field_name
+        self.contention_factor = contention_factor
 
     @abstractmethod
     def emit_generator():
         pass
 
+    @abstractmethod
+    def emit_values():
+        pass
+
 
 class ExplicitDistribution(Distribution):
-    def __init__(self, field_name: str, map: dict[str, int]):
-        super(ExplicitDistribution, self).__init__(field_name)
+    def __init__(self, field_name: str, contention_factor: int, map: dict[str, int]):
+        super(ExplicitDistribution, self).__init__(field_name, contention_factor)
         self.map = map
 
     def emit_generator(self):
         template = env.get_template("explicit_distribution.jinja2")
         return Snippet(template, {"field_name": self.field_name, "map": self.map})
 
+    def emit_values(self):
+        return iter(self.map)
+
 
 states = ExplicitDistribution(
-    "states",
+    "states", 16,
     {
         "California": 118000,
         "Texas": 86030,
@@ -135,10 +143,10 @@ class DiagnosisDistribution(ExplicitDistribution):
         while fresh_code in diagnosis_code:
             fresh_code = gen_fresh_code()
         diagnosis_code[fresh_code] = f
-    super(DiagnosisDistribution, self).__init__(field_name, diagnosis_code)
+    super(DiagnosisDistribution, self).__init__(field_name, 8, diagnosis_code)
 
 class UniformDistribution(ExplicitDistribution):
-  def __init__(self, field_name: str, values):
+  def __init__(self, field_name: str, contention_factor: int, values):
     numDocs = 1000000
     target = math.floor(numDocs / len(values))
 
@@ -147,9 +155,9 @@ class UniformDistribution(ExplicitDistribution):
     for value in values:
       distribution[value] = target
 
-    super(UniformDistribution, self).__init__(field_name, distribution)
+    super(UniformDistribution, self).__init__(field_name, contention_factor, distribution)
 
-status_codes = UniformDistribution("status", [f"A{x}" for x in range(1, 21)])
+status_codes = UniformDistribution("status", 16, [f"A{x}" for x in range(1, 21)])
 
 def make_credit_cards():
     faker = Faker()
@@ -161,22 +169,74 @@ def make_credit_cards():
 
     return credit_cards
 
-credit_cards = UniformDistribution("credit_cards", make_credit_cards())
+credit_cards = UniformDistribution("credit_cards", 4, make_credit_cards())
 
 class SequenceDistribution(Distribution):
     def __init__(self, field_name: str, prefix: str):
-        super(SequenceDistribution, self).__init__(field_name)
+        super(SequenceDistribution, self).__init__(field_name, 1)
         self.prefix = prefix
 
     def emit_generator(self):
         template = env.get_template("sequence_distribution.jinja2")
         return Snippet(template, {"field_name": self.field_name, "prefix": self.prefix})
 
+    def emit_values(self):
+        for i in range(0, 1000000):
+          yield f"{self.prefix}{i}"
+
 guids = SequenceDistribution("guid", "99999999-9999-9999-99999")
 
-with open("medical.map", "w+") as mapFile:
+distributions = [states, DiagnosisDistribution("diagnosis"), status_codes, credit_cards, guids]
+
+for distribution in distributions:
+  filename = f"{distribution.field_name}.txt" 
+  print(f"Writing {filename}")
+  with open(filename, "w+") as dataFile:
+    for value in distribution.emit_values():
+      dataFile.write(f"{value}\n")
+
+with open("maps_medical.yml", "w+") as mapFile:
     mapFile.write(
         template.render(
-            {"objFields": [states.emit_generator(), DiagnosisDistribution("diagnosis").emit_generator(), status_codes.emit_generator(), credit_cards.emit_generator(), guids.emit_generator()]}
+            {"objFields": [x.emit_generator() for x in distributions]}
         )
     )
+
+with open("equal_distribution.yml", "w+") as equalFile:
+    template = env.get_template("medical_workload.jinja2")
+
+    class LoadPhase:
+        def __init__(self, env):
+            self.env = env
+
+        def context(self):
+            return {}
+
+        def generate(self):
+            template = self.env.get_template("load_phase.jinja2")
+            return template
+
+    class FSMPhase:
+        def __init__(self, env):
+            self.env = env
+
+        def context(self):
+            return {}
+
+        def generate(self):
+            template = self.env.get_template("update_query_mixed_phase.jinja2")
+            return template
+
+    phases = [LoadPhase(env), FSMPhase(env)]
+
+
+
+    equalFile.write(template.render({
+      'encryptedFields': distributions,
+      "collectionName": "medical",
+      "threadCount": 16,
+      "iterationsPerThread": math.floor(100000 / 16),
+      "phases": phases,
+      "maxPhase": len(phases) - 1,
+      "shouldAutoRun": True,
+    }))

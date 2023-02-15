@@ -3,16 +3,16 @@
   MetricsName: "FSM"
   InitialStates:
     - State: Query
-      Weight: 1
+      Weight: <<ctx.readRatio>>
     - State: Update
-      Weight: 0
+      Weight: <<ctx.updateRatio>>
   StateTransitions: &transitions
     - To: Query
-      Weight: 1
-      SleepBefore: {^TimeSpec: {value: 0}}
+      Weight: <<ctx.readRatio>>
+      SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
     - To: Update
-      Weight: 0
-      SleepBefore: {^TimeSpec: {value: 0}}
+      Weight: <<ctx.readRatio>>
+      SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
   States:
     - Name: Query
       Operations:
@@ -20,6 +20,7 @@
           OperationMetricsName: query
           OperationCommand:
             Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+      Transitions: *transitions
     - Name: Update
       Operations:
         - OperationName: updateOne
@@ -27,3 +28,4 @@
           OperationCommand:
             Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
             Update: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+      Transitions: *transitions

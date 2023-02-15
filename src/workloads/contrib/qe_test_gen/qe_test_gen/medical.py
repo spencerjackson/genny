@@ -202,36 +202,61 @@ with open("maps_medical.yml", "w+") as mapFile:
         )
     )
 
-with open("equal_distribution.yml", "w+") as equalFile:
-    template = env.get_template("medical_workload.jinja2")
+class LoadPhase:
+    def __init__(self, env):
+        self.env = env
 
-    class LoadPhase:
-        def __init__(self, env):
-            self.env = env
+    def context(self):
+        return {}
 
-        def context(self):
-            return {}
+    def generate(self):
+        template = self.env.get_template("load_phase.jinja2")
+        return template
 
-        def generate(self):
-            template = self.env.get_template("load_phase.jinja2")
-            return template
+class FSMPhase:
+    def __init__(self, env, fieldName: str, readUpdateRatio: (int, int)):
+        self.env = env
+        self.field_name = fieldName
+        self.readUpdateRatio = readUpdateRatio
 
-    class FSMPhase:
-        def __init__(self, env):
-            self.env = env
+    def context(self):
+        return {
+          'field_name': self.field_name,
+          'readRatio': self.readUpdateRatio[0] / 100,
+          'updateRatio': self.readUpdateRatio[1] / 100
+        }
 
-        def context(self):
-            return {}
+    def generate(self):
+        template = self.env.get_template("update_query_mixed_phase.jinja2")
+        return template
 
-        def generate(self):
-            template = self.env.get_template("update_query_mixed_phase.jinja2")
-            return template
+for distribution in distributions:
+  for ratio in [(100, 0), (95, 5), (50, 50)]:
+    fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}.yml"
+    print(f"Writing workload file: {fileName}")
+    with open(fileName, "w+") as equalFile:
+        workloadTemplate = env.get_template("medical_workload.jinja2")
+    
+        phases = [LoadPhase(env), FSMPhase(env, distribution.field_name, ratio)]
+    
+        equalFile.write(workloadTemplate.render({
+          'encryptedFields': distributions,
+          "collectionName": "medical",
+          "threadCount": 16,
+          "iterationsPerThread": math.floor(100000 / 16),
+          "phases": phases,
+          "maxPhase": len(phases) - 1,
+          "shouldAutoRun": True,
+        }))
 
-    phases = [LoadPhase(env), FSMPhase(env)]
+fileName = "workload/medical_workload-load.yml"
+print(f"Writing workload file: {fileName}")
+with open(fileName, "w+") as equalFile:
+    workloadTemplate = env.get_template("medical_workload.jinja2")
 
+    phases = [LoadPhase(env)]
 
-
-    equalFile.write(template.render({
+    equalFile.write(workloadTemplate.render({
       'encryptedFields': distributions,
       "collectionName": "medical",
       "threadCount": 16,

@@ -40,6 +40,10 @@ class Distribution(ABC):
         pass
 
     @abstractmethod
+    def emit_targetter():
+        pass
+
+    @abstractmethod
     def emit_values():
         pass
 
@@ -52,6 +56,9 @@ class ExplicitDistribution(Distribution):
     def emit_generator(self):
         template = env.get_template("explicit_distribution.jinja2")
         return Snippet(template, {"field_name": self.field_name, "map": self.map})
+
+    def emit_targetter(self):
+        return f'{{^ChooseFromDataset: {{"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/{self.field_name}.txt"}}}}'
 
     def emit_values(self):
         return iter(self.map)
@@ -180,9 +187,11 @@ class SequenceDistribution(Distribution):
         template = env.get_template("sequence_distribution.jinja2")
         return Snippet(template, {"field_name": self.field_name, "prefix": self.prefix})
 
+    def emit_targetter(self):
+        return f'{{^Join: {{array: [ "{self.prefix}", {{^FormatString: {{"format": "%|07d|", "withArgs": [{{^RandomInt: {{min: 0, max: 1000000}}}}]}}}}]}}}}'
+
     def emit_values(self):
-        for i in range(0, 1000000):
-          yield f"{self.prefix}{i}"
+        yield ()
 
 guids = SequenceDistribution("guid", "99999999-9999-9999-99999")
 
@@ -214,16 +223,19 @@ class LoadPhase:
         return template
 
 class FSMPhase:
-    def __init__(self, env, fieldName: str, readUpdateRatio: (int, int)):
+    def __init__(self, env, distribution, readUpdateRatio: (int, int)):
         self.env = env
-        self.field_name = fieldName
+        self.field_name = distribution.field_name
+        self.targetter = distribution.emit_targetter()
         self.readUpdateRatio = readUpdateRatio
 
     def context(self):
         return {
           'field_name': self.field_name,
+          'targetter': self.targetter,
           'readRatio': self.readUpdateRatio[0] / 100,
-          'updateRatio': self.readUpdateRatio[1] / 100
+          'updateRatio': self.readUpdateRatio[1] / 100,
+
         }
 
     def generate(self):
@@ -237,7 +249,7 @@ for distribution in distributions:
     with open(fileName, "w+") as equalFile:
         workloadTemplate = env.get_template("medical_workload.jinja2")
     
-        phases = [LoadPhase(env), FSMPhase(env, distribution.field_name, ratio)]
+        phases = [LoadPhase(env), FSMPhase(env, distribution, ratio)]
     
         equalFile.write(workloadTemplate.render({
           'encryptedFields': distributions,

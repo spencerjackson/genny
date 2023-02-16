@@ -212,27 +212,30 @@ with open("maps_medical.yml", "w+") as mapFile:
     )
 
 class LoadPhase:
-    def __init__(self, env):
+    def __init__(self, env, numDocs):
         self.env = env
+        self.numDocs = numDocs
 
     def context(self):
-        return {}
+        return {'iterationsPerThread': math.floor(self.numDocs / 16)}
 
     def generate(self):
         template = self.env.get_template("load_phase.jinja2")
         return template
 
 class FSMPhase:
-    def __init__(self, env, distribution, readUpdateRatio: (int, int)):
+    def __init__(self, env, distribution : Distribution, numOps: int, readUpdateRatio: (int, int)):
         self.env = env
         self.field_name = distribution.field_name
         self.targetter = distribution.emit_targetter()
+        self.numOps = numOps
         self.readUpdateRatio = readUpdateRatio
 
     def context(self):
         return {
           'field_name': self.field_name,
           'targetter': self.targetter,
+          'iterationsPerThread': math.floor(self.numOps / 16),
           'readRatio': self.readUpdateRatio[0] / 100,
           'updateRatio': self.readUpdateRatio[1] / 100,
 
@@ -249,13 +252,12 @@ for distribution in distributions:
     with open(fileName, "w+") as equalFile:
         workloadTemplate = env.get_template("medical_workload.jinja2")
     
-        phases = [LoadPhase(env), FSMPhase(env, distribution, ratio)]
+        phases = [LoadPhase(env, 1000000), FSMPhase(env, distribution, 100000, ratio)]
     
         equalFile.write(workloadTemplate.render({
           'encryptedFields': distributions,
           "collectionName": "medical",
           "threadCount": 16,
-          "iterationsPerThread": math.floor(100000 / 16),
           "phases": phases,
           "maxPhase": len(phases) - 1,
           "shouldAutoRun": True,
@@ -266,13 +268,12 @@ print(f"Writing workload file: {fileName}")
 with open(fileName, "w+") as equalFile:
     workloadTemplate = env.get_template("medical_workload.jinja2")
 
-    phases = [LoadPhase(env)]
+    phases = [LoadPhase(env, 1000000)]
 
     equalFile.write(workloadTemplate.render({
       'encryptedFields': distributions,
       "collectionName": "medical",
       "threadCount": 16,
-      "iterationsPerThread": math.floor(100000 / 16),
       "phases": phases,
       "maxPhase": len(phases) - 1,
       "shouldAutoRun": True,

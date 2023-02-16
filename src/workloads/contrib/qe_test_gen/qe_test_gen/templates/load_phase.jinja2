@@ -1,4 +1,4 @@
-- Repeat: <<iterationsPerThread>>
+- Repeat: <<ctx.iterationsPerThread>>
   Collection: {^Parameter: {Name: "Collection", Default: "<<collectionName>>"}}
   MetricsName: "load"
   Operations:
@@ -11,4 +11,4 @@
           Key: document_insert_<<collectionName>>
           Parameters:
             Database: ignored
-            multiplier: <<iterationsPerThread>>
+            multiplier: <<ctx.iterationsPerThread>>

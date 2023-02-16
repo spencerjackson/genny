@@ -1,14 +1,7 @@
 SchemaVersion: 2018-07-01
 Owner: "@10gen/server-security"
 Description: |
-  Performs a series of insert operations, using the following properties:
-    - All documents have 11 fields, including 1 _id field, and 10 data fields.
-    - The first 0 data fields are encrypted.
-    - _id is always unique.
-    - Values in data fields fit a 'blimit' distribution.
-    - The insertions are performed by 1 client threads.
-  This test is uniquely identified as 'InsertOnly-blimit-0-1-1'.
-
+  Models the Queryable Encryption acceptance criteria workloads
 
 Encryption:
   UseCryptSharedLib: true
@@ -19,11 +12,11 @@ Encryption:
     EncryptionType: queryable
 
     QueryableEncryptedFields:
-     state : { type: "string", queries: [{queryType: "equality", contention: 16 }] }
-     diagnosis: { type: "string", queries: [{queryType: "equality", contention: 8 }] }
-     status: { type: "string", queries: [{queryType: "equality", contention: 16 }] }
-     credit: { type: "string", queries: [{queryType: "equality", contention: 4 }] }
-     guid: { type: "string", queries: [{queryType: "equality", contention: 1 }] }
+      states: { type: "string", queries: [{queryType: "equality", contention: 16 }] }
+      diagnosis: { type: "string", queries: [{queryType: "equality", contention: 8 }] }
+      status: { type: "string", queries: [{queryType: "equality", contention: 16 }] }
+      credit_cards: { type: "string", queries: [{queryType: "equality", contention: 4 }] }
+      guid: { type: "string", queries: [{queryType: "equality", contention: 1 }] }
 
 Clients:
   EncryptedPool:
@@ -52,12 +45,12 @@ Actors:
         OperationCommand:
           Document:
             LoadConfig:
-              Path: ../contrib/qe_test_gen/medical.map
+              Path: ../contrib/qe_test_gen/maps_medical.yml
               Key: document_insert_medical
               Parameters:
                 Database: ignored
                 multiplier: 62500
-
+  
   - Name: LoggingActor0
     Type: LoggingActor
     Threads: 1

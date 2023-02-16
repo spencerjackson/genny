@@ -19,13 +19,13 @@
         - OperationName: findOne
           OperationMetricsName: query
           OperationCommand:
-            Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+            Filter: {<<ctx.field_name>>: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/<<ctx.field_name>>.txt"}}}
       Transitions: *transitions
     - Name: Update
       Operations:
         - OperationName: updateOne
           OperationMetricsName: update
           OperationCommand:
-            Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
-            Update: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+            Filter: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/<<ctx.field_name>>.txt"}}}
+            Update: {state: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/<<ctx.field_name>>.txt"}}}
       Transitions: *transitions

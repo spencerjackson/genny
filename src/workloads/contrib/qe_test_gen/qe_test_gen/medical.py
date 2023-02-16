@@ -245,36 +245,53 @@ class FSMPhase:
         template = self.env.get_template("update_query_mixed_phase.jinja2")
         return template
 
-for distribution in distributions:
-  for ratio in [(100, 0), (95, 5), (50, 50)]:
-    fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}.yml"
-    print(f"Writing workload file: {fileName}")
-    with open(fileName, "w+") as equalFile:
-        workloadTemplate = env.get_template("medical_workload.jinja2")
-    
-        phases = [LoadPhase(env, 1000000), FSMPhase(env, distribution, 100000, ratio)]
-    
-        equalFile.write(workloadTemplate.render({
-          'encryptedFields': distributions,
-          "collectionName": "medical",
-          "threadCount": 16,
-          "phases": phases,
-          "maxPhase": len(phases) - 1,
-          "shouldAutoRun": True,
-        }))
+for encrypted in [True, False]:
+  for distribution in distributions:
+    for ratio in [(100, 0), (95, 5), (50, 50)]:
+      if encrypted:
+        fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}.yml"
+      else:
+        fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}-unencrypted.yml"
+      print(f"Writing workload file: {fileName}")
+      with open(fileName, "w+") as equalFile:
+          workloadTemplate = env.get_template("medical_workload.jinja2")
+      
+          phases = [LoadPhase(env, 1000000), FSMPhase(env, distribution, 100000, ratio)]
 
-fileName = "workload/medical_workload-load.yml"
-print(f"Writing workload file: {fileName}")
-with open(fileName, "w+") as equalFile:
-    workloadTemplate = env.get_template("medical_workload.jinja2")
+          context = {
+            'encryptedFields': distributions,
+            "collectionName": "medical",
+            "threadCount": 16,
+            "phases": phases,
+            "maxPhase": len(phases) - 1,
+            "shouldAutoRun": True,
+          }
 
-    phases = [LoadPhase(env, 1000000)]
+          if not encrypted:
+            context.pop("encryptedFields")
 
-    equalFile.write(workloadTemplate.render({
-      'encryptedFields': distributions,
-      "collectionName": "medical",
-      "threadCount": 16,
-      "phases": phases,
-      "maxPhase": len(phases) - 1,
-      "shouldAutoRun": True,
-    }))
+          equalFile.write(workloadTemplate.render(context))
+
+for encrypted in [True, False]:
+  if encrypted:
+      fileName = "workload/medical_workload-load.yml"
+  else:
+      fileName = "workload/medical_workload-load-unencrypted.yml"
+  print(f"Writing workload file: {fileName}")
+  with open(fileName, "w+") as equalFile:
+      workloadTemplate = env.get_template("medical_workload.jinja2")
+  
+      phases = [LoadPhase(env, 1000000)]
+  
+      context = {
+        'encryptedFields': distributions,
+        "collectionName": "medical",
+        "threadCount": 16,
+        "phases": phases,
+        "maxPhase": len(phases) - 1,
+        "shouldAutoRun": True,
+      }
+      if not encrypted:
+          context.pop("encryptedFields")
+  
+      equalFile.write(workloadTemplate.render(context))

@@ -27,5 +27,5 @@
           OperationMetricsName: update
           OperationCommand:
             Filter: {<<ctx.field_name>>: <<ctx.targetter>>}
-            Update: {<<ctx.field_name>>: <<ctx.targetter>>}
+            Update: {$set: {<<ctx.field_name>>: <<ctx.targetter>>}}
       Transitions: *transitions

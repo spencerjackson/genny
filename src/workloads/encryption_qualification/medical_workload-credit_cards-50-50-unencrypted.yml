@@ -52,15 +52,15 @@ Actors:
             - OperationName: findOne
               OperationMetricsName: query
               OperationCommand:
-                Filter: {credit_cards: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}
+                Filter: {credit_cards: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}
           Transitions: *transitions
         - Name: Update
           Operations:
             - OperationName: updateOne
               OperationMetricsName: update
               OperationCommand:
-                Filter: {credit_cards: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}
-                Update: {$set: {credit_cards: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}}
+                Filter: {credit_cards: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}
+                Update: {$set: {credit_cards: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/credit_cards.txt"}}}}
           Transitions: *transitions
   
   - Name: LoggingActor0

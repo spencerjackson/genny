@@ -58,7 +58,7 @@ class ExplicitDistribution(Distribution):
         return Snippet(template, {"field_name": self.field_name, "map": self.map})
 
     def emit_targetter(self):
-        return f'{{^ChooseFromDataset: {{"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/{self.field_name}.txt"}}}}'
+        return f'{{^ChooseFromDataset: {{"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/{self.field_name}.txt"}}}}'
 
     def emit_values(self):
         return iter(self.map)

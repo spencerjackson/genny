@@ -71,15 +71,15 @@ Actors:
             - OperationName: findOne
               OperationMetricsName: query
               OperationCommand:
-                Filter: {states: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+                Filter: {states: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
           Transitions: *transitions
         - Name: Update
           Operations:
             - OperationName: updateOne
               OperationMetricsName: update
               OperationCommand:
-                Filter: {states: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
-                Update: {$set: {states: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}}
+                Filter: {states: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}
+                Update: {$set: {states: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/contrib/qe_test_gen/states.txt"}}}}
           Transitions: *transitions
   
   - Name: LoggingActor0

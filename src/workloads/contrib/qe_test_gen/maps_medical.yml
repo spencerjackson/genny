@@ -105110,11 +105110,11 @@ document_insert_medical:
     report_source_address: {^IP: {}}
     report_provided_pkey: {^RandomString: {length: 9, alphabet: "0123456789"}}
     flaggedForReview: {^Choose: {from: [true, false], weights: [1, 100]}}
-    patient_name: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/datasets/names.txt"}}
+    patient_name: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/datasets/names.txt"}}
     patient_dob:  {^RandomDate: {min: "1950-01-01T00:00:00+05:30", max: "2023-01-01T00:00:00+05:30"}}
     patient_gender: {^Choose: {from: ["True", "False", "NULL"]}}
     patient_ssn: {^RandomString: {length: 9, alphabet: "0123456789"}}
-    provider_name: {^ChooseFromDataset: {"path": "./dist/etc/genny/workloads/datasets/names.txt"}}
+    provider_name: {^ChooseFromDataset: {"path": "./src/dist/etc/genny/workloads/datasets/names.txt"}}
     service_date: {^RandomDate: {min: "2015-01-01T00:00:00+05:30", max: "2023-01-01T00:00:00+05:30"}}
     billing_confirmation_code:  {^ObjectId: {^RandomString: {length: 24, alphabet: "0123456789ABCDEF"}}}
     billing_date:  {^RandomDate: {min: "2015-01-01T00:00:00+05:30", max: "2023-01-01T00:00:00+05:30"}}

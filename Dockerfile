@@ -6,10 +6,10 @@ FROM amazonlinux:2 as base
 # docker system prune
 # Build:
 # DOCKER_BUILDKIT=1 docker build -t genny .
-# Evaluate:
-# docker run --mount type=bind,source=/home/ubuntu/genny/src/workloads,target=/genny/src/dist/etc/genny/workloads/  --mount type=bind,source=/home/ubuntu/genny/src/phases,target=/genny/src/dist/etc/genny/phases genny evaluate /genny/src/dist/etc/genny/workloads/encryption_qualification/medical_workload-credit_cards-50-50.yml
+# Evaluate
+# docker run --mount type=bind,source=/home/ubuntu/genny/src/workloads,target=/genny/src/genny/dist/etc/genny/workloads/  --mount type=bind,source=/home/ubuntu/genny/src/phases,target=/genny/src/genny/dist/etc/genny/phases genny evaluate /genny/src/genny/dist/etc/genny/workloads/encryption_qualification/medical_workload-credit_cards-50-50.yml
 # Run:
-# docker run --mount type=bind,source=/home/ubuntu/genny/src/workloads,target=/genny/src/dist/etc/genny/workloads/  --mount type=bind,source=/home/ubuntu/genny/src/phases,target=/genny/src/dist/etc/genny/phases --net host genny workload -u localhost:27017 /genny/src/dist/etc/genny/workloads/encryption_qualification/medical_workload-credit_cards-50-50.yml
+# docker run --mount type=bind,source=/home/ubuntu/genny/src/workloads,target=/genny/src/genny/dist/etc/genny/workloads/  --mount type=bind,source=/home/ubuntu/genny/src/phases,target=/genny/src/genny/dist/etc/genny/phases --net host genny workload -u localhost:27017 /genny/src/genny/dist/etc/genny/workloads/encryption_qualification/medical_workload-credit_cards-50-50.yml
 
 RUN yum -y groupinstall Development Tools
 RUN yum -y install python3 python3-pip sudo bash git
@@ -17,8 +17,8 @@ RUN yum -y install python3 python3-pip sudo bash git
 ENV USER="root"
 RUN curl http://mongodbtoolchain.build.10gen.cc/installer.sh | bash
 
-RUN mkdir -p /{data/mci,genny/src}
-WORKDIR /genny/src
+RUN mkdir -p /{data/mci,genny/src/genny}
+WORKDIR /genny/src/genny
 
 RUN mkdir -p build/curator
 RUN curl https://s3.amazonaws.com/boxes.10gen.com/build/curator/curator-dist-rhel70-3df28d2514d4c4de7c903d027e43f3ee48bf8ec1.tar.gz | tar -xvzf - -C build/curator
@@ -42,5 +42,5 @@ COPY --from=build /genny /genny
 COPY --from=build /data/mci/gennytoolchain/installed/x64-linux-dynamic/lib/ /data/mci/gennytoolchain/installed/x64-linux-dynamic/lib/
 
 WORKDIR /genny
-ENTRYPOINT ["/genny/src/run-genny"]
+ENTRYPOINT ["/genny/src/genny/run-genny"]
 CMD ["-h"]

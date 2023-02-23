@@ -24,3 +24,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 line-length = 120
+include = 'qe_test_gen\/.*\.pyi?$'

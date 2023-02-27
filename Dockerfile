@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1.4
 FROM amazonlinux:2 as base
 
 # Tips
@@ -11,8 +11,7 @@ FROM amazonlinux:2 as base
 # Run:
 # docker run --mount type=bind,source=/home/ubuntu/genny/src/workloads,target=/genny/src/genny/dist/etc/genny/workloads/  --mount type=bind,source=/home/ubuntu/genny/src/phases,target=/genny/src/genny/dist/etc/genny/phases --net host genny workload -u localhost:27017 /genny/src/genny/dist/etc/genny/workloads/encryption_qualification/medical_workload-credit_cards-50-50.yml
 
-RUN yum -y groupinstall Development Tools
-RUN yum -y install python3 python3-pip sudo bash git
+RUN yum -y groupinstall Development Tools && yum -y install python3 python3-pip sudo bash git && yum clean all && rm -rf /var/cache/yum
 
 ENV USER="root"
 RUN curl http://mongodbtoolchain.build.10gen.cc/installer.sh | bash

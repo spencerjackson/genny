@@ -63,7 +63,7 @@ Actors:
           Weight: 0.95
           SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
         - To: Update
-          Weight: 0.95
+          Weight: 0.05
           SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
       States:
         - Name: Query

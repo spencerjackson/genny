@@ -273,7 +273,7 @@ for encrypted in [True, False]:
                 testName = f"medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}"
             else:
                 testName = f"medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}-unencrypted"
-            fileName = f"workload/medical_workload-{testName}.yml"
+            fileName = f"workload/{testName}.yml"
             testNames.append(to_snake_case(testName))
 
             print(f"Writing workload file: {fileName}")

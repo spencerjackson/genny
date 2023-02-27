@@ -11,7 +11,7 @@
       Weight: <<ctx.readRatio>>
       SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
     - To: Update
-      Weight: <<ctx.readRatio>>
+      Weight: <<ctx.updateRatio>>
       SleepBefore: {^TimeSpec: {value: 0, unit: seconds}}
   States:
     - Name: Query

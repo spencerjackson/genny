@@ -4,6 +4,7 @@ from random import Random
 import math
 import string
 from abc import ABC, abstractmethod
+import re
 
 
 env = Environment(
@@ -253,13 +254,28 @@ class FSMPhase:
         return template
 
 
+def to_snake_case(camel_case):
+    """
+    Converts CamelCase to snake_case, useful for generating test IDs
+    https://stackoverflow.com/questions/1175208/
+    :return: snake_case version of camel_case.
+    """
+    s1 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", camel_case)
+    s2 = re.sub("-", "_", s1)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", s2).lower()
+
+
+testNames = []
 for encrypted in [True, False]:
     for distribution in distributions:
         for ratio in [(100, 0), (95, 5), (50, 50)]:
             if encrypted:
-                fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}.yml"
+                testName = f"medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}"
             else:
-                fileName = f"workload/medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}-unencrypted.yml"
+                testName = f"medical_workload-{distribution.field_name}-{ratio[0]}-{ratio[1]}-unencrypted"
+            fileName = f"workload/medical_workload-{testName}.yml"
+            testNames.append(to_snake_case(testName))
+
             print(f"Writing workload file: {fileName}")
             with open(fileName, "w+") as equalFile:
                 workloadTemplate = env.get_template("medical_workload.jinja2")
@@ -285,6 +301,7 @@ for encrypted in [True, False]:
         fileName = "workload/medical_workload-load.yml"
     else:
         fileName = "workload/medical_workload-load-unencrypted.yml"
+    testNames.append(to_snake_case(testName))
     print(f"Writing workload file: {fileName}")
     with open(fileName, "w+") as equalFile:
         workloadTemplate = env.get_template("medical_workload.jinja2")
@@ -303,3 +320,8 @@ for encrypted in [True, False]:
             context.pop("encryptedFields")
 
         equalFile.write(workloadTemplate.render(context))
+
+with open("patchConfig.yml", "w+") as patchConfig:
+    template = env.get_template("patch_config.jinja2")
+
+    patchConfig.write(template.render({"testNames": testNames}))

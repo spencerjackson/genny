@@ -17,6 +17,19 @@ Actors:
     Database: genny_qebench2
     ClientName: EncryptedPool
     Phases:
+    - Repeat: 1
+      Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
+      MetricsName: "createIndex"
+      Operations:
+      - OperationName: createIndex
+        OperationCommand:
+          Keys:
+            states: 1
+            diagnosis: 1
+            status: 1
+            credit_cards: 1
+            guid: 1
+          IndexOptions: {}
     - Repeat: 62500
       Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
       MetricsName: "load"
@@ -36,7 +49,7 @@ Actors:
     Type: LoggingActor
     Threads: 1
     Phases:
-      - Phase: 0..0
+      - Phase: 0..1
         LogEvery: 5 minutes
         Blocking: None
 

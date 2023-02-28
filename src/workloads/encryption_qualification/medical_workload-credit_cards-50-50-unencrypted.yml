@@ -49,7 +49,7 @@ Actors:
       States:
         - Name: Query
           Operations:
-            - OperationName: findOne
+            - OperationName: find
               OperationMetricsName: query
               OperationCommand:
                 Filter: {credit_cards: {^ChooseFromDataset: {"path": "./src/genny/src/workloads/contrib/qe_test_gen/credit_cards.txt"}}}

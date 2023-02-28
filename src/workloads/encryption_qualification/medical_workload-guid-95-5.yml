@@ -68,7 +68,7 @@ Actors:
       States:
         - Name: Query
           Operations:
-            - OperationName: findOne
+            - OperationName: find
               OperationMetricsName: query
               OperationCommand:
                 Filter: {guid: {^Join: {array: [ "99999999-9999-9999-99999", {^FormatString: {"format": "%|07d|", "withArgs": [{^RandomInt: {min: 0, max: 1000000}}]}}]}}}

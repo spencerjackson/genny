@@ -16,7 +16,7 @@
   States:
     - Name: Query
       Operations:
-        - OperationName: findOne
+        - OperationName: find
           OperationMetricsName: query
           OperationCommand:
             Filter: {<<ctx.field_name>>: <<ctx.targetter>>}

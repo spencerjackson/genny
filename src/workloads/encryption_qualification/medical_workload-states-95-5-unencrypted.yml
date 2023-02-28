@@ -49,7 +49,7 @@ Actors:
       States:
         - Name: Query
           Operations:
-            - OperationName: findOne
+            - OperationName: find
               OperationMetricsName: query
               OperationCommand:
                 Filter: {states: {^ChooseFromDataset: {"path": "./src/genny/src/workloads/contrib/qe_test_gen/states.txt"}}}

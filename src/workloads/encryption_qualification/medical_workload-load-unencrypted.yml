@@ -25,9 +25,41 @@ Actors:
         OperationCommand:
           Keys:
             states: 1
+          IndexOptions: {}
+    - Repeat: 1
+      Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
+      MetricsName: "createIndex"
+      Operations:
+      - OperationName: createIndex
+        OperationCommand:
+          Keys:
             diagnosis: 1
+          IndexOptions: {}
+    - Repeat: 1
+      Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
+      MetricsName: "createIndex"
+      Operations:
+      - OperationName: createIndex
+        OperationCommand:
+          Keys:
             status: 1
+          IndexOptions: {}
+    - Repeat: 1
+      Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
+      MetricsName: "createIndex"
+      Operations:
+      - OperationName: createIndex
+        OperationCommand:
+          Keys:
             credit_cards: 1
+          IndexOptions: {}
+    - Repeat: 1
+      Collection: {^Parameter: {Name: "Collection", Default: "medical"}}
+      MetricsName: "createIndex"
+      Operations:
+      - OperationName: createIndex
+        OperationCommand:
+          Keys:
             guid: 1
           IndexOptions: {}
     - Repeat: 62500
@@ -49,7 +81,7 @@ Actors:
     Type: LoggingActor
     Threads: 1
     Phases:
-      - Phase: 0..1
+      - Phase: 0..5
         LogEvery: 5 minutes
         Blocking: None
 

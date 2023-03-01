@@ -219,12 +219,12 @@ with open("maps_medical.yml", "w+") as mapFile:
     mapFile.write(template.render({"objFields": [x.emit_generator() for x in distributions]}))
 
 class CreateIndexPhase:
-    def __init__(self, env, distributions: [Distribution]):
+    def __init__(self, env, field: str):
         self.env = env
-        self.field_names = [x.field_name for x in distributions]
+        self.field = field
 
     def context(self):
-        return {"field_names": self.field_names}
+        return {"field": self.field}
 
     def generate(self):
         template = self.env.get_template("create_index_phase.jinja2")
@@ -293,7 +293,7 @@ for encrypted in [True, False]:
 
                 phases = [LoadPhase(env, 1000000), FSMPhase(env, distribution, 100000, ratio)]
                 if not encrypted:
-                    phases = [CreateIndexPhase(env, distributions)] + phases
+                    phases = [CreateIndexPhase(env, x.field_name) for x in distributions] + phases
 
                 context = {
                     "encryptedFields": distributions,
@@ -321,7 +321,7 @@ for encrypted in [True, False]:
 
         phases = [LoadPhase(env, 1000000)]
         if not encrypted:
-            phases = [CreateIndexPhase(env, distributions)] + phases
+            phases = [CreateIndexPhase(env, x.field_name) for x in distributions] + phases
 
         context = {
             "encryptedFields": distributions,

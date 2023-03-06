@@ -218,6 +218,7 @@ for distribution in distributions:
 with open("maps_medical.yml", "w+") as mapFile:
     mapFile.write(template.render({"objFields": [x.emit_generator() for x in distributions]}))
 
+
 class CreateIndexPhase:
     def __init__(self, env, field: str):
         self.env = env
@@ -229,6 +230,7 @@ class CreateIndexPhase:
     def generate(self):
         template = self.env.get_template("create_index_phase.jinja2")
         return template
+
 
 class LoadPhase:
     def __init__(self, env, numDocs):

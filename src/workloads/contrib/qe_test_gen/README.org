@@ -17,10 +17,10 @@ poetry run python qe_test_gen/medical.py
 
 This command will create:
 - maps_medical.yml
-This file describes the data distributions for all fields. Genny will use this file to load data into the database.
+  This file describes the data distributions for all fields. Genny will use this file to load data into the database.
 - <data distribution>.txt
-These files contain all the possible values which a particular field may contain. Workloads will use these files to issue queries which are guaranteed to return a matching document.
+  These files contain all the possible values which a particular field may contain. Workloads will use these files to issue queries which are guaranteed to return a matching document.
 - workload/*.yml
-Each of these files represent a workload. They must be copied from this directory, into a path which Genny will scan in Evergreen.
+  Each of these files represent a workload. They must be copied from this directory, into a path which Genny will scan in Evergreen.
 - patchConfig.yml
-*Most* of a YAML file which perf_tooling can use to download performance metrics. At a minimum, you'll need to edit in the Patch ID from an Evergreen patch you put up.
+  *Most* of a YAML file which perf_tooling can use to download performance metrics. At a minimum, you'll need to edit in the Patch ID from an Evergreen patch you put up.
